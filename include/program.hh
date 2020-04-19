@@ -21,6 +21,7 @@ public:
     void addUniformMat4(glm::mat4 &matrix, const char *name);
     void addUniformVec3(const glm::vec3 vector, const char *name);
     void addUniformFloat(float val, const char* name);
+    void addUniformUint(uint val, const char* name);
 
 private:
         uint _id_program;

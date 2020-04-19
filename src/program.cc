@@ -69,6 +69,11 @@ void program::addUniformMat4(glm::mat4 &matrix, const char *name)
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(matrix));
 }
 
+void program::addUniformUint(uint val, const char* name)
+{
+    glUniform1ui(glGetUniformLocation(_id_program, name), val);
+}
+
 void program::addUniformFloat(float val, const char* name)
 {
     glUniform1f(glGetUniformLocation(_id_program, name), val);

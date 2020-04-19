@@ -1,6 +1,9 @@
 #include <iostream>
+#include <sstream>
 
 #include <light.hh>
+
+uint Light::_nb_lights = 0;
 
 Light::Light(light_type type, vec3 pos, vec3 color, vec3 intensity)
 {
@@ -9,7 +12,7 @@ Light::Light(light_type type, vec3 pos, vec3 color, vec3 intensity)
     _intensity = intensity;
     _type = type;
     _id = _nb_lights;
-    _nb_lights++;
+    _nb_lights += 1;
     set_shadow_framebuffer();
 }
 
@@ -58,7 +61,6 @@ void Light::setup_program(vec3 direction, vec3 optional_pos)
     _view = shadow_cam.look_at();
     _program.addUniformMat4(_view, "view");
 
-    mat4 projection = mat4(1.0);
     if (_type == DIRECTIONAL)
         _projection = ortho<float>(-10, 10, -10, 10, -10, 20);
     else
@@ -67,17 +69,17 @@ void Light::setup_program(vec3 direction, vec3 optional_pos)
 
 }
 
-void Light::draw_shadow_map(std::vector<Model> models)
+void Light::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)
 {
     _program.use();
-    glCullFace(GL_FRONT);
+    // glCullFace(GL_FRONT);
     glViewport(0,0,1024,1024);
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
     glDrawBuffer(GL_NONE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (auto model : models)
-        model.draw(_program);
+        model->draw(_program);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -86,9 +88,11 @@ void Light::set_light_in_program(program p)
 {
     p.use();
 
-    p.addUniformVec3(_pos, "light" + _id + ".pos");
-    p.addUniformMat4(_view, "light" + _id + ".view");
-    p.addUniformMat4(_projection, "light" + _id + ".projection");
+    auto tmp_id = std::to_string(_id);
+    p.addUniformUint(_type, ("light" + tmp_id + ".type").c_str());
+    p.addUniformVec3(_pos, ("light" + tmp_id + ".pos").c_str());
+    p.addUniformMat4(_view, ("light" + tmp_id + ".view").c_str());
+    p.addUniformMat4(_projection, ("light" + tmp_id + ".projection").c_str());
     // p.addUniformVec3(_color. "light" + _id + ".color");
 }
 
@@ -109,5 +113,10 @@ mat4 Light::get_view()
 
 mat4 Light::get_projection()
 {
-    return _projection
+    return _projection;
+}
+
+program Light::get_program()
+{
+    return _program;
 }

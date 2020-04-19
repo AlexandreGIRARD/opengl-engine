@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <vector>
+#include <memory>
 
 #include "model.hh"
 #include "program.hh"
@@ -21,13 +22,15 @@ class Light
 public:
     Light(light_type type, vec3 pos, vec3 color, vec3 intensity);
     uint set_shadow_framebuffer();
-    void draw_shadow_map(std::vector<Model> models);
+    void draw_shadow_map(std::vector<std::shared_ptr<Model>> models);
     void setup_program(vec3 direction, vec3 optional_pos);
     void set_light_in_program(program p);
 
     uint get_light_id();
+    uint get_map();
     mat4 get_projection();
     mat4 get_view();
+    program get_program();
 
     static uint _nb_lights;
 
@@ -47,5 +50,4 @@ private:
     program _program;
 };
 
-uint Light::_nb_lights = 0;
 #endif /* LIGHT_HH */
