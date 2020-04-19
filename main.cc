@@ -209,19 +209,11 @@ int main(int argc, char *argv[])
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, shadow_tex);
-        glActiveTexture(GL_TEXTURE1);
-        glBindTexture(GL_TEXTURE_2D, def_color);
 
         //Draw objects
         teapot.draw(shaders);
         cube.draw(shaders);
         plane.draw(shaders);
-
-        // shadow_shaders.use();
-        //
-        // teapot.draw(shadow_shaders);
-        // cube.draw(shadow_shaders);
-        // plane.draw(shadow_shaders);
 
 
         // Check and call events
