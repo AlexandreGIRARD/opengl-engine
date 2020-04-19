@@ -78,19 +78,19 @@ int main(int argc, char *argv[])
     uint shadow_tex;
     glGenTextures(1, &shadow_tex);
     glBindTexture(GL_TEXTURE_2D, shadow_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    glBindTexture(GL_TEXTURE_2D, 0);
 
     // Framebuffer init
     uint FBO;
     glGenFramebuffers(1, &FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, shadow_tex, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadow_tex, 0);
+
     glDrawBuffer(GL_NONE);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
 
     // Set shader
     shaders.use();
-    shaders.addUniformVec3(vec3(0, 1, -1), "light_pos");
+    shaders.addUniformVec3(vec3(0, 0.5, -1), "light_pos");
     shaders.addUniformVec3(vec3(1.0, 1.0, 1.0), "lightIntensity");
 
 
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 
     // Shadow map view and projection matrices
     shadow_shaders.use();
-    Camera shadow_cam = Camera(vec3(0, 1, -1), vec3(0, 0, 0), vec3(0, 1, 0));
+    Camera shadow_cam = Camera(vec3(0, 0.5, -1), vec3(0, 0, 0), vec3(0, 1, 0));
     view = shadow_cam.look_at();
     shadow_shaders.addUniformMat4(view, "view");
 
@@ -163,9 +163,8 @@ int main(int argc, char *argv[])
     auto cube = Model("models/cube.obj", model, diffuse2, spec, shininess);
 
     model = mat4(1.0);
-    model = translate(model, vec3(0,-1, 0));
     model = scale(model, vec3(5,5,5));
-    model = rotate(model, radians(-90.f), vec3(0,0,1));
+    model = translate(model, vec3(0,-0.2, 0));
     auto plane = Model("models/wall.obj", model, diffuse3, spec, shininess);
 
 
@@ -186,10 +185,12 @@ int main(int argc, char *argv[])
         cube.set_model(cube_model);
 
         // Shadow computing
-        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
-        glViewport(0,0,1024,1024);
-        glDrawBuffer(GL_NONE);
         shadow_shaders.use();
+        glCullFace(GL_FRONT);
+        glViewport(0,0,1024,1024);
+        glBindFramebuffer(GL_FRAMEBUFFER, FBO);
+        glDrawBuffer(GL_NONE);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         teapot.draw(shadow_shaders);
         cube.draw(shadow_shaders);
@@ -198,15 +199,20 @@ int main(int argc, char *argv[])
         glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
         // Render
-        glClearColor(1, 1, 1, 1);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
         glViewport(0, 0, width, height);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         shaders.use();
+
+        glCullFace(GL_BACK);
+
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, shadow_tex);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, def_color);
 
-        // Draw objects
+        //Draw objects
         teapot.draw(shaders);
         cube.draw(shaders);
         plane.draw(shaders);
