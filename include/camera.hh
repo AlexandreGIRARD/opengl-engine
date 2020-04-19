@@ -9,6 +9,9 @@ using namespace glm;
 class Camera
 {
 public:
+
+    Camera()
+    {}
     Camera(vec3 position, vec3 target, vec3 up)
         : _position(position)
         , _target(target)
