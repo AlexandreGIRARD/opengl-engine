@@ -4,29 +4,31 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+using namespace glm;
+
 class Camera
 {
 public:
-    Camera(glm::vec3 position, glm::vec3 target, glm::vec3 up)
+    Camera(vec3 position, vec3 target, vec3 up)
         : _position(position)
         , _target(target)
         , _up(up)
     {}
 
-    glm::mat4 look_at();
+    mat4 look_at();
 
-    glm::vec3 get_position();
-    glm::vec3 get_target();
-    glm::vec3 get_up();
+    vec3 get_position();
+    vec3 get_target();
+    vec3 get_up();
 
-    void set_position(glm::vec3 position);
-    void set_target(glm::vec3 target);
-    void set_up(glm::vec3 up);
+    void set_position(vec3 position);
+    void set_target(vec3 target);
+    void set_up(vec3 up);
 
 private:
-    glm::vec3 _position;
-    glm::vec3 _target;
-    glm::vec3 _up;
+    vec3 _position;
+    vec3 _target;
+    vec3 _up;
 };
 
 #endif /* CAMERA_HH */

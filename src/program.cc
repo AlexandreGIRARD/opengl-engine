@@ -19,28 +19,28 @@ void program::add_shader(std::string path, int shader_type)
     buffer << shader.rdbuf();
     shader.close();
     std::string tmp_string = buffer.str();
-    const char *shaderCode = tmp_string.c_str();
+    const char *code = tmp_string.c_str();
 
     // Create shader
-    uint idShader = glCreateShader(shader_type);
-    glShaderSource(idShader, 1, &shaderCode, NULL);
-    glCompileShader(idShader);
+    uint id = glCreateShader(shader_type);
+    glShaderSource(id, 1, &code, NULL);
+    glCompileShader(id);
 
     int success;
     char infoLog[512];
-    glGetShaderiv(idShader, GL_COMPILE_STATUS, &success);
+    glGetShaderiv(id, GL_COMPILE_STATUS, &success);
 
     if (!success)
     {
-        glGetShaderInfoLog(idShader, 512, NULL, infoLog);
-        std::cout << "ERROR::SHADER::COMPILATION_FAILED\n" << infoLog << std::endl;
+        glGetShaderInfoLog(id, 512, NULL, infoLog);
+        std::cout << "Error at shader compilation: " << path << "\n" << infoLog << std::endl;
         exit(-1);
     }
 
-    glAttachShader(_id_program, idShader);
-    glDeleteShader(idShader);
+    glAttachShader(_id_program, id);
+    glDeleteShader(id);
 
-    _id_shaders.emplace_back(idShader);
+    _id_shaders.emplace_back(id);
 }
 
 void program::link()
