@@ -1,14 +1,11 @@
 #version 450 core
 
-#define SCALE -0.04
-
 struct material
 {
     vec3 diffuse;
     vec3 specular;
     float shininess;
 };
-
 
 in vec3 frag_pos;
 in vec3 frag_normal;
@@ -19,14 +16,14 @@ in vec4 shadow_uv;
 out vec4 color;
 
 uniform material mtl;
-// uniform vec3 light_color;
-uniform sampler2D shadow_map;
+uniform sampler2D shadow_tex;
+uniform sampler2D def_color;
 
 void main()
 {
-    // Shadow coef computing
+    // // Shadow coef computing
     float shadow = 1.0;
-    if (texture(shadow_map, shadow_uv.xy).z < shadow_uv.z)
+    if (texture(shadow_tex, shadow_uv.xy).x < shadow_uv.z)
         shadow = 0.5;
 
     // Ambient
@@ -42,8 +39,8 @@ void main()
     vec3 spec = mtl.specular * spec_coef;
 
 
-    // color = vec4((ambient + diffuse) * shadow, 1.0);
+    color = vec4((ambient + diffuse) * shadow, 1.0);
     // color = vec4(1.0,1.0,1.0,1.0)  * shadow;
-    color = texture(shadow_map, shadow_uv.xy);
-    // fragColor = vec4(gl_FragCoord.z);
+    // color = vec4(shadow_uv.z);
+    // color = texture(shadow_tex, gl_FragCoord.xy);
 }

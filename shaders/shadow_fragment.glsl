@@ -1,11 +1,17 @@
 #version 450 core
 
-// layout (location = 0) out float depth;
+struct material
+{
+    vec3 diffuse;
+    vec3 specular;
+    float shininess;
+};
 
-out vec4 color;
+uniform material mtl;
+
+layout (location = 0) out vec3 color;
 
 void main()
 {
-    // depth = gl_FragCoord.z;
-    // color = vec4(gl_FragCoord.z);
+    color = mtl.diffuse;
 }
