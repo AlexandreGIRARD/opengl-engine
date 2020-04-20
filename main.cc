@@ -130,6 +130,9 @@ int main(int argc, char *argv[])
     auto plane = std::make_shared<Model>("models/wall.obj", model, diffuse3, spec, shininess);
     models.emplace_back(plane);
 
+    double time = glfwGetTime();
+    double delta = 0.0;
+
     // Render loop
     while(!glfwWindowShouldClose(window))
     {
@@ -137,7 +140,9 @@ int main(int argc, char *argv[])
         quit_window(window);
 
         // Move camera
-        cam.update(window);
+        delta = glfwGetTime() - time;
+        cam.update(window, (float)delta);
+        time = glfwGetTime();
 
         // Update camera view and projection matrices
         mat4 view = cam.look_at();

@@ -14,25 +14,32 @@ public:
     Camera()
     {}
     Camera(vec3 position, vec3 target, vec3 up)
-        : _position(position)
+        : _speed(1)
+        , _position(position)
         , _target(target)
         , _up(up)
         , _forward(target - position)
+        , _right(- up * _forward)
     {}
 
     mat4 look_at();
 
+    float get_speed();
     vec3 get_position();
     vec3 get_target();
     vec3 get_up();
     vec3 get_forward();
 
+    void set_speed(float speed);
     void set_position(vec3 position);
     void set_target(vec3 target);
     void set_up(vec3 up);
-    void update(GLFWwindow *window);
+    void set_forward(vec3 forward);
+
+    void update(GLFWwindow *window, float delta);
 
 private:
+    float _speed;
     vec3 _position;
     vec3 _target;
     vec3 _up;
