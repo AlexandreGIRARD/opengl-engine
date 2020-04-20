@@ -19,7 +19,7 @@ public:
         , _target(target)
         , _up(up)
         , _forward(target - position)
-        , _right(- up * _forward)
+        , _right(- cross(up, _forward))
     {}
 
     mat4 look_at();
@@ -29,12 +29,14 @@ public:
     vec3 get_target();
     vec3 get_up();
     vec3 get_forward();
+    vec3 get_right();
 
     void set_speed(float speed);
     void set_position(vec3 position);
     void set_target(vec3 target);
     void set_up(vec3 up);
     void set_forward(vec3 forward);
+    void set_right(vec3 right);
 
     void update(GLFWwindow *window, float delta);
 
@@ -44,6 +46,7 @@ private:
     vec3 _target;
     vec3 _up;
     vec3 _forward;
+    vec3 _right;
 };
 
 #endif /* CAMERA_HH */

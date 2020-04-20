@@ -30,6 +30,11 @@ glm::vec3 Camera::get_forward()
     return _forward;
 }
 
+glm::vec3 Camera::get_right()
+{
+    return _right;
+}
+
 void Camera::set_speed(float speed)
 {
     _speed = speed;
@@ -55,18 +60,28 @@ void Camera::set_forward(glm::vec3 forward)
     _forward = forward;
 }
 
+void Camera::set_right(glm::vec3 right)
+{
+    _right = right;
+}
+
 void Camera::update(GLFWwindow *window, float delta)
 {
-    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
+    // Keyboard events
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)  // W : forwards
     {
         set_position(get_position() + get_forward() * get_speed() * delta);
     }
-    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)  // S : backwards
     {
         set_position(get_position() - get_forward() * get_speed() * delta);
     }
-    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)  // A : left
     {
         set_position(get_position() - get_right() * get_speed() * delta);
+    }
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)  // D : right
+    {
+        set_position(get_position() + get_right() * get_speed() * delta);
     }
 }
