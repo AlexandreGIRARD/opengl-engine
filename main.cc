@@ -136,6 +136,18 @@ int main(int argc, char *argv[])
         // Callback quit window with KEY_ESCAPE
         quit_window(window);
 
+        // Move camera
+        cam.update(window);
+
+        // Update camera view and projection matrices
+        mat4 view = cam.look_at();
+        shaders.addUniformVec3(cam.get_position(), "cam_pos");
+        shaders.addUniformMat4(view, "view");
+
+        mat4 projection = mat4(1.0);
+        projection = perspective(radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
+        shaders.addUniformMat4(projection, "projection");
+
         // Update model matrices
         rad_off = pause_rotation(window, rad_off);
         auto teapot_model = teapot->get_model();
