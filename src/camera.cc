@@ -65,7 +65,7 @@ void Camera::set_right(glm::vec3 right)
     _right = right;
 }
 
-void Camera::update(GLFWwindow *window, float delta)
+void Camera::update(GLFWwindow *window, float delta, float mouse_x, float mouse_y)
 {
     // Keyboard events
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)  // W : forwards
@@ -84,4 +84,9 @@ void Camera::update(GLFWwindow *window, float delta)
     {
         set_position(get_position() + get_right() * get_speed() * delta);
     }
+
+    // Mouse events
+    set_forward(get_forward() + get_right() * mouse_x * delta);
+    set_forward(get_forward() - get_up() * mouse_y * delta);
+    set_right(- cross(get_up(), get_forward()));
 }

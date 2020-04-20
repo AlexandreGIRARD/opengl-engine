@@ -130,8 +130,16 @@ int main(int argc, char *argv[])
     auto plane = std::make_shared<Model>("models/wall.obj", model, diffuse3, spec, shininess);
     models.emplace_back(plane);
 
+    // Delta time setup
     double time = glfwGetTime();
     double delta = 0.0;
+
+    // Mouse event setup
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    double xpos, ypos;
+    double new_xpos, new_ypos;
+    float mouse_x, mouse_y;
+    glfwGetCursorPos(window, &xpos, &ypos);
 
     // Render loop
     while(!glfwWindowShouldClose(window))
@@ -139,10 +147,19 @@ int main(int argc, char *argv[])
         // Callback quit window with KEY_ESCAPE
         quit_window(window);
 
-        // Move camera
+        // Compute delta time
         delta = glfwGetTime() - time;
-        cam.update(window, (float)delta);
         time = glfwGetTime();
+
+        // Get mouse event (position variations)
+        glfwGetCursorPos(window, &new_xpos, &new_ypos);
+        mouse_x = (float)new_xpos - xpos;
+        mouse_y = (float)new_ypos - ypos;
+        xpos = new_xpos;
+        ypos = new_ypos;
+
+        // Update camera position
+        cam.update(window, (float)delta, mouse_x, mouse_y);
 
         // Update camera view and projection matrices
         mat4 view = cam.look_at();

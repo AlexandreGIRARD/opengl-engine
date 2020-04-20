@@ -38,7 +38,7 @@ public:
     void set_forward(vec3 forward);
     void set_right(vec3 right);
 
-    void update(GLFWwindow *window, float delta);
+    void update(GLFWwindow *window, float delta, float mouse_x, float mouse_y);
 
 private:
     float _speed;
