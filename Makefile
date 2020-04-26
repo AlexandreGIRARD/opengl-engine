@@ -1,6 +1,6 @@
 CXX = g++
 
-CXX_FILES =  main.cc src/matrix4.cc src/program.cc src/camera.cc src/mesh.cc src/model.cc src/glad.c src/stb_image.c
+CXX_FILES =  main.cc src/matrix4.cc src/program.cc src/camera.cc src/mesh.cc src/model.cc src/glad.c src/stb_image.c src/light.cc
 OBJ_FILES =   src/glad.o src/stb_image.o
 
 CXX_FLAGS = -Wall -g -std=c++11 -I. -I./include

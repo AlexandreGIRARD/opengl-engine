@@ -130,11 +130,45 @@ int main(int argc, char *argv[])
     auto plane = std::make_shared<Model>("models/wall.obj", model, diffuse3, spec, shininess);
     models.emplace_back(plane);
 
+    // Delta time setup
+    double time = glfwGetTime();
+    double delta = 0.0;
+
+    // Mouse event setup
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    double xpos, ypos;
+    double new_xpos, new_ypos;
+    float mouse_x, mouse_y;
+    glfwGetCursorPos(window, &xpos, &ypos);
+
     // Render loop
     while(!glfwWindowShouldClose(window))
     {
         // Callback quit window with KEY_ESCAPE
         quit_window(window);
+
+        // Compute delta time
+        delta = glfwGetTime() - time;
+        time = glfwGetTime();
+
+        // Get mouse event (position variations)
+        glfwGetCursorPos(window, &new_xpos, &new_ypos);
+        mouse_x = (float)new_xpos - xpos;
+        mouse_y = (float)new_ypos - ypos;
+        xpos = new_xpos;
+        ypos = new_ypos;
+
+        // Update camera position
+        cam.update(window, (float)delta, mouse_x, mouse_y);
+
+        // Update camera view and projection matrices
+        mat4 view = cam.look_at();
+        shaders.addUniformVec3(cam.get_position(), "cam_pos");
+        shaders.addUniformMat4(view, "view");
+
+        mat4 projection = mat4(1.0);
+        projection = perspective(radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
+        shaders.addUniformMat4(projection, "projection");
 
         // Update model matrices
         rad_off = pause_rotation(window, rad_off);
