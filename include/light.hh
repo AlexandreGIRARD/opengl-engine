@@ -11,20 +11,14 @@
 
 using namespace glm;
 
-enum light_type
-{
-    DIRECTIONAL = 0,
-    POINT = 1
-};
-
 class Light
 {
 public:
-    Light(light_type type, vec3 pos, vec3 color, vec3 intensity);
-    uint set_shadow_framebuffer();
-    void draw_shadow_map(std::vector<std::shared_ptr<Model>> models);
-    void setup_program(vec3 direction, vec3 optional_pos);
-    void set_light_in_program(program p);
+    Light(vec3 color, vec3 intensity);
+    virtual uint set_shadow_framebuffer() = 0;
+    virtual void draw_shadow_map(std::vector<std::shared_ptr<Model>> models) = 0;
+    // virtual void setup_program(vec3 direction, vec3 optional_pos) = 0;
+    virtual void set_light_in_program(program p) = 0;
 
     uint get_light_id();
     uint get_map();
@@ -34,9 +28,7 @@ public:
 
     static uint _nb_lights;
 
-private:
-    light_type _type;
-
+protected:
     vec3 _pos;
     vec3 _color;
     vec3 _intensity;

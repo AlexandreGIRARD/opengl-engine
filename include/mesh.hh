@@ -6,8 +6,6 @@
 
 #include <program.hh>
 
-#include <stb_image.h>
-
 #include <vector>
 #include <string>
 
