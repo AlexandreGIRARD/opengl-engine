@@ -22,15 +22,13 @@ uint PointLight::set_shadow_framebuffer()
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     // Iterate over 6 faces
     for (auto i=0; i < 6; i++)
-        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X +i, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_RED, GL_FLOAT, NULL);
 
 
     // FBO for the light
     glGenFramebuffers(1, &_FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _map, 0);
-
-    glDrawBuffer(GL_NONE);
+    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _map, 0);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
@@ -50,7 +48,6 @@ void PointLight::set_views()
     _views.emplace_back(lookAt(_pos, _pos + vec3(0 ,-1, 0), vec3(0, 0,  1)));
     _views.emplace_back(lookAt(_pos, _pos + vec3(0 , 0, 1), vec3(0, -1, 0)));
     _views.emplace_back(lookAt(_pos, _pos + vec3(0 , 0,-1), vec3(0, -1, 0)));
-
 }
 
 void PointLight::setup_program(vec3 direction)
@@ -61,7 +58,6 @@ void PointLight::setup_program(vec3 direction)
     _program.link();
     _program.use();
 
-
     _projection = perspective(radians(90.0f), 1.0f, 0.1f, 100.0f);;
     _program.addUniformMat4(_projection, "projection");
 
@@ -70,7 +66,17 @@ void PointLight::setup_program(vec3 direction)
 void PointLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)
 {
     _program.use();
-    // glCullFace(GL_FRONT);
+    glViewport(0,0,1024,1024);
+    glClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
+
+    for (auto i=0; i < 6; i++)
+    {
+        glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _faces[i], _map, 0);
+        glDrawBuffer(GL_COLOR_ATTACHMENT0);
+        _program.addUniformMat4(_views[i], "view");
+    }
+
     glViewport(0,0,1024,1024);
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
     glDrawBuffer(GL_NONE);

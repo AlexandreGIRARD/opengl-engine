@@ -15,4 +15,10 @@ public:
 private:
     vec3 _pos;
     std::vector<mat4> _views;
+    const uint _faces[6] = {GL_TEXTURE_CUBE_MAP_POSITIVE_X,
+                            GL_TEXTURE_CUBE_MAP_NEGATIVE_X,
+                            GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
+                            GL_TEXTURE_CUBE_MAP_POSITIVE_Y,
+                            GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
+                            GL_TEXTURE_CUBE_MAP_NEGATIVE_Z};
 };

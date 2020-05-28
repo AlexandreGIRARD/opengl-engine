@@ -14,19 +14,25 @@ uint DirectionalLight::set_shadow_framebuffer()
     // Shadow texture for light
     glGenTextures(1, &_map);
     glBindTexture(GL_TEXTURE_2D, _map);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 1024, 1024, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 2048, 2048, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glBindTexture(GL_TEXTURE_2D, 0);
 
+
+    GLuint rboId;
+    glGenRenderbuffers(1, &rboId);
+    glBindRenderbuffer(GL_RENDERBUFFER, rboId);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT, 1024, 1024);
 
     // FBO for the light
     glGenFramebuffers(1, &_FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _map, 0);
 
-    glDrawBuffer(GL_NONE);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _map, 0);
+    // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, rboId);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
@@ -58,11 +64,12 @@ void DirectionalLight::setup_program(vec3 direction, vec3 space_pos)
 void DirectionalLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)
 {
     _program.use();
-    // glCullFace(GL_FRONT);
-    glViewport(0,0,1024,1024);
+    glCullFace(GL_FRONT);
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
-    glDrawBuffer(GL_NONE);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0,0,2048,2048);
+    // glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glDrawBuffer(GL_NONE);
 
     for (auto model : models)
         model->draw(_program);
