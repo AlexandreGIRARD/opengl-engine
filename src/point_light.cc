@@ -101,9 +101,11 @@ void PointLight::set_light_in_program(program p)
     p.use();
 
     auto tmp_id = std::to_string(_id);
-    p.addUniformUint(1, ("light" + tmp_id + ".type").c_str());
-    p.addUniformVec3(_pos, ("light" + tmp_id + ".pos").c_str());
-    p.addUniformMat4(_view, ("light" + tmp_id + ".view").c_str());
-    p.addUniformMat4(_projection, ("light" + tmp_id + ".projection").c_str());
-    // p.addUniformVec3(_color. "light" + _id + ".color");
+    std::cout << tmp_id << std::endl;
+    p.addUniformVec3(_pos, ("lights[" + tmp_id + "].pos").c_str());
+    p.addUniformVec3(_color, ("lights[" + tmp_id + "].color").c_str());
+    p.addUniformVec3(_intensity, ("lights[" + tmp_id + "].intensity").c_str());
+    p.addUniformTexture(4 + _id, ("lights[" + tmp_id + "].map").c_str());
+    glActiveTexture(GL_TEXTURE4 + _id);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _map);
 }

@@ -10,6 +10,7 @@
 #include "camera.hh"
 #include "model.hh"
 #include "directional_light.hh"
+#include "point_light.hh"
 #include "deferred.hh"
 
 using namespace glm;
@@ -98,15 +99,20 @@ int main(int argc, char *argv[])
     // Add view projetcion to deferred shaders
     Deferred deferred = Deferred(width, height);
 
-    // Light init
-    DirectionalLight light1 = DirectionalLight(vec3(0, 0.5, -1), vec3(1, 1, 1), vec3(1, 1, 1));
-    light1.setup_program(vec3(0, 0, 0), vec3(0, 0.5, -1));
-    light1.set_light_in_program(shaders);
+    // Sun Light init
+    // DirectionalLight light1 = DirectionalLight(vec3(0, 0.5, -1), vec3(1, 1, 1), vec3(1, 1, 1));
+    // light1.setup_program(vec3(0, 0, 0), vec3(0, 0.5, -1));
+    // light1.set_light_in_program(shaders);
+
+    // Point Light init
+    PointLight light2 = PointLight(vec3(0,0.2,2), vec3(1, 1, 1), vec3(1, 1, 1));
+    light2.setup_program();
+    light2.set_light_in_program(shaders);
 
     // Material setting
     vec3 diffuse1 = vec3(1,0,0); //Red
     vec3 diffuse2 = vec3(0,1,1); //Cyan
-    vec3 diffuse3 = vec3(0,1,0); //Green
+    vec3 diffuse3 = vec3(0.4,0.4,0.4); //Green
     vec3 spec = vec3(0.7, 0.7, 0.7); // rubber
     float shininess = 0.25f;
 
@@ -124,14 +130,30 @@ int main(int argc, char *argv[])
     models.emplace_back(teapot);
 
     model = mat4(1.0);
-    model = translate(model, vec3(-2,-0.5,2));
+    model = translate(model, vec3(-2,-0.2, 2));
     auto cube = std::make_shared<Model>("models/smooth_sphere.obj", model, diffuse2, spec, shininess);
     models.emplace_back(cube);
 
     model = mat4(1.0);
     model = scale(model, vec3(5,5,5));
-    model = translate(model, vec3(0,-0.2, 0));
-    auto plane = std::make_shared<Model>("models/wall.obj", model, diffuse3, spec, shininess);
+
+    auto model1 = translate(model, vec3(0,-0.2, 0));
+    auto plane = std::make_shared<Model>("models/wall.obj", model1, diffuse3, spec, shininess);
+    models.emplace_back(plane);
+
+    auto model2 = rotate(model, radians(-90.f), vec3(1, 0, 0));
+    model2 = translate(model2, vec3(0, -1, 0));
+    plane = std::make_shared<Model>("models/wall.obj", model2, diffuse3, spec, shininess);
+    models.emplace_back(plane);
+
+    model2 = rotate(model, radians(-90.f), vec3(0, 0, 1));
+    model2 = translate(model2, vec3(0, -1, 0));
+    plane = std::make_shared<Model>("models/wall.obj", model2, diffuse3, spec, shininess);
+    models.emplace_back(plane);
+
+    model2 = rotate(model, radians(90.f), vec3(0, 0, 1));
+    model2 = translate(model2, vec3(0, -1, 0));
+    plane = std::make_shared<Model>("models/wall.obj", model2, diffuse3, spec, shininess);
     models.emplace_back(plane);
 
     // Delta time setup
@@ -191,18 +213,24 @@ int main(int argc, char *argv[])
         deferred.render(models);
 
         // Shadow computing
-        light1.draw_shadow_map(models);
+        // light1.draw_shadow_map(models);
+        light2.draw_shadow_map(models);
 
         // Render
         glViewport(0, 0, width, height);
+        glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaders.use();
 
         deferred.set_textures(shaders);
 
-        shaders.addUniformTexture(4, "shadow_tex");
+        shaders.addUniformTexture(4, "shadow_cube");
         glActiveTexture(GL_TEXTURE0+4);
-        glBindTexture(GL_TEXTURE_2D, light1.get_map());
+        glBindTexture(GL_TEXTURE_CUBE_MAP, light2.get_map());
+
+        // shaders.addUniformTexture(4, "shadow_tex");
+        // glActiveTexture(GL_TEXTURE0+4);
+        // glBindTexture(GL_TEXTURE_2D, light1.get_map());
 
 
         // Draw objects
