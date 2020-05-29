@@ -8,11 +8,12 @@ struct material
 };
 
 in vec3 frag_normal;
-in vec4 frag_pos;
+in vec3 frag_pos;
 
 layout (location = 0) out vec3 color;
 layout (location = 1) out vec4 normal;
-layout (location = 2) out vec3 specular;
+layout (location = 2) out vec4 position;
+layout (location = 3) out vec3 specular;
 
 uniform material mtl;
 
@@ -20,5 +21,6 @@ void main()
 {
     color = mtl.diffuse;
     normal = vec4(frag_normal, mtl.shininess);
+    position = vec4(frag_pos, 1.0);
     specular = mtl.specular;
 }

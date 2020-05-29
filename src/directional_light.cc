@@ -75,6 +75,7 @@ void DirectionalLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> model
         model->draw(_program);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glCullFace(GL_BACK);
 }
 
 

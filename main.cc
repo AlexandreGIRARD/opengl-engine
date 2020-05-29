@@ -1,16 +1,16 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
-#include <stb_image.h>
 
 #include <iostream>
 #include <cmath>
 #include <filesystem>
 #include <memory>
 
-#include <program.hh>
-#include <camera.hh>
-#include <model.hh>
-#include <light.hh>
+#include "program.hh"
+#include "camera.hh"
+#include "model.hh"
+#include "directional_light.hh"
+#include "deferred.hh"
 
 using namespace glm;
 
@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
     shaders.use();
 
     // Camera view and projection matrices
-    Camera cam = Camera(vec3(0, 2, -2), vec3(0, 0, 1), vec3(0, 1, 0));
+    Camera cam = Camera(vec3(0, 0, -2), vec3(0, 0, 1), vec3(0, 1, 0));
     mat4 view = cam.look_at();
     shaders.addUniformVec3(cam.get_position(), "cam_pos");
     shaders.addUniformMat4(view, "view");
@@ -95,8 +95,11 @@ int main(int argc, char *argv[])
     projection = perspective(radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
     shaders.addUniformMat4(projection, "projection");
 
+    // Add view projetcion to deferred shaders
+    Deferred deferred = Deferred(width, height);
+
     // Light init
-    Light light1 = Light(DIRECTIONAL, vec3(0, 0.5, -1), vec3(1, 1, 1), vec3(1, 1, 1));
+    DirectionalLight light1 = DirectionalLight(vec3(0, 0.5, -1), vec3(1, 1, 1), vec3(1, 1, 1));
     light1.setup_program(vec3(0, 0, 0), vec3(0, 0.5, -1));
     light1.set_light_in_program(shaders);
 
@@ -110,18 +113,19 @@ int main(int argc, char *argv[])
     // Models matrix
     mat4 model = mat4(1.0);
     model = translate(model, vec3(2,-1,2));
+    model = scale(model, vec3(0.5, 0.5, 0.5));
     auto angle = -150.f;
     auto rad_off = 0.2f;
 
     std::vector<std::shared_ptr<Model>> models;
 
     model = rotate(model, radians(angle), vec3(0.0, 1.0, 0.0));
-    auto teapot = std::make_shared<Model>("models/teapot.obj", model, diffuse1, spec, shininess);
+    auto teapot = std::make_shared<Model>("models/teapot_stanford.obj", model, diffuse1, spec, shininess);
     models.emplace_back(teapot);
 
     model = mat4(1.0);
     model = translate(model, vec3(-2,-0.5,2));
-    auto cube = std::make_shared<Model>("models/cube.obj", model, diffuse2, spec, shininess);
+    auto cube = std::make_shared<Model>("models/smooth_sphere.obj", model, diffuse2, spec, shininess);
     models.emplace_back(cube);
 
     model = mat4(1.0);
@@ -162,6 +166,7 @@ int main(int argc, char *argv[])
         cam.update(window, (float)delta, mouse_x, mouse_y);
 
         // Update camera view and projection matrices
+        shaders.use();
         mat4 view = cam.look_at();
         shaders.addUniformVec3(cam.get_position(), "cam_pos");
         shaders.addUniformMat4(view, "view");
@@ -180,6 +185,11 @@ int main(int argc, char *argv[])
         cube_model = rotate(cube_model, radians(-rad_off), vec3(1.0, 0.0, 0.0));
         cube->set_model(cube_model);
 
+
+        // Deferred shading
+        deferred.update_viewport(view, projection);
+        deferred.render(models);
+
         // Shadow computing
         light1.draw_shadow_map(models);
 
@@ -187,21 +197,25 @@ int main(int argc, char *argv[])
         glViewport(0, 0, width, height);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         shaders.use();
-        glCullFace(GL_BACK);
 
-        glActiveTexture(GL_TEXTURE0);
+        deferred.set_textures(shaders);
+
+        shaders.addUniformTexture(4, "shadow_tex");
+        glActiveTexture(GL_TEXTURE0+4);
         glBindTexture(GL_TEXTURE_2D, light1.get_map());
 
-        //Draw objects
+
+        // Draw objects
         for (auto model : models)
             model->draw(shaders);
+
 
         // Check and call events
         glfwSwapBuffers(window);
         glfwPollEvents();
 
         // Clear bufffer
-        glClearColor(1, 1, 1, 1);
+        glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     glfwTerminate();

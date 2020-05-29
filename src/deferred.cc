@@ -28,7 +28,7 @@ Deferred::Deferred(int width, int height)
     // Position texture
     glGenTextures(1, &_position);
     glBindTexture(GL_TEXTURE_2D, _position);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -105,7 +105,7 @@ void Deferred::set_textures(program &p)
     glActiveTexture(GL_TEXTURE0+1);
     glBindTexture(GL_TEXTURE_2D, _normals);
 
-    p.addUniformTexture(2, "def_pos");
+    p.addUniformTexture(2, "def_position");
     glActiveTexture(GL_TEXTURE0+2);
     glBindTexture(GL_TEXTURE_2D, _position);
 
