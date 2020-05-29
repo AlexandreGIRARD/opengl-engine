@@ -5,11 +5,12 @@
 class PointLight : public Light
 {
 public:
-    PointLight(vec3 pos, vec3 color, vec3 intensity);
+    PointLight(vec3 pos, vec3 color, float intensity);
     uint set_shadow_framebuffer() override;
     void draw_shadow_map(std::vector<std::shared_ptr<Model>> models) override;
     void set_light_in_program(program p) override;
     void setup_program();
+    void set_shadow_cube(program p);
     void set_views();
 
 private:

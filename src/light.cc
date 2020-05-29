@@ -5,7 +5,7 @@
 
 uint Light::_nb_lights = 0;
 
-Light::Light(vec3 color, vec3 intensity)
+Light::Light(vec3 color, float intensity)
 {
     _color = color;
     _intensity = intensity;

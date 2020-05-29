@@ -104,10 +104,18 @@ int main(int argc, char *argv[])
     // light1.setup_program(vec3(0, 0, 0), vec3(0, 0.5, -1));
     // light1.set_light_in_program(shaders);
 
-    // Point Light init
-    PointLight light2 = PointLight(vec3(0,0.2,2), vec3(1, 1, 1), vec3(1, 1, 1));
-    light2.setup_program();
-    light2.set_light_in_program(shaders);
+    // Point Lights init
+    std::vector<std::shared_ptr<PointLight>> lights;
+
+    auto light2 = std::make_shared<PointLight>(vec3(0,0.2,2), vec3(1, 1, 1), 1.f);
+    light2->setup_program();
+    light2->set_light_in_program(shaders);
+    lights.emplace_back(light2);
+
+    auto light = std::make_shared<PointLight>(vec3(1,0.2,0), vec3(1, 1, 1), 0.5f);
+    light->setup_program();
+    light->set_light_in_program(shaders);
+    lights.emplace_back(light);
 
     // Material setting
     vec3 diffuse1 = vec3(1,0,0); //Red
@@ -214,7 +222,8 @@ int main(int argc, char *argv[])
 
         // Shadow computing
         // light1.draw_shadow_map(models);
-        light2.draw_shadow_map(models);
+        for (auto light : lights)
+            light->draw_shadow_map(models);
 
         // Render
         glViewport(0, 0, width, height);
@@ -224,13 +233,8 @@ int main(int argc, char *argv[])
 
         deferred.set_textures(shaders);
 
-        shaders.addUniformTexture(4, "shadow_cube");
-        glActiveTexture(GL_TEXTURE0+4);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, light2.get_map());
-
-        // shaders.addUniformTexture(4, "shadow_tex");
-        // glActiveTexture(GL_TEXTURE0+4);
-        // glBindTexture(GL_TEXTURE_2D, light1.get_map());
+        for (auto light : lights)
+            light->set_shadow_cube(shaders);
 
 
         // Draw objects

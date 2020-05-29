@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-DirectionalLight::DirectionalLight(vec3 vect, vec3 color, vec3 intensity)
+DirectionalLight::DirectionalLight(vec3 vect, vec3 color, float intensity)
     : Light(color, intensity)
     , _vect(vect)
 {
@@ -68,7 +68,6 @@ void DirectionalLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> model
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0,0,2048,2048);
-    // glDrawBuffer(GL_COLOR_ATTACHMENT0);
     glDrawBuffer(GL_NONE);
 
     for (auto model : models)
@@ -84,9 +83,17 @@ void DirectionalLight::set_light_in_program(program p)
     p.use();
 
     auto tmp_id = std::to_string(_id);
-    p.addUniformUint(0, ("light" + tmp_id + ".type").c_str());
-    p.addUniformVec3(_vect, ("light" + tmp_id + ".pos").c_str());
-    p.addUniformMat4(_view, ("light" + tmp_id + ".view").c_str());
-    p.addUniformMat4(_projection, ("light" + tmp_id + ".projection").c_str());
-    // p.addUniformVec3(_color. "light" + _id + ".color");
+    p.addUniformVec3(_vect, "sun.vect");
+    p.addUniformVec3(_color, "sun.color");
+    p.addUniformFloat(_intensity, "sun.intensity");
+    p.addUniformMat4(_view, "sun_view");
+    p.addUniformMat4(_projection,"sun_projection");
+}
+
+void DirectionalLight::set_shadow_map(program p)
+{
+    auto tmp_id = std::to_string(_id);
+    p.addUniformTexture(4 , "sun.map");
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, _map);
 }

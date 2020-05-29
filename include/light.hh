@@ -14,7 +14,7 @@ using namespace glm;
 class Light
 {
 public:
-    Light(vec3 color, vec3 intensity);
+    Light(vec3 color, float intensity);
     virtual uint set_shadow_framebuffer() = 0;
     virtual void draw_shadow_map(std::vector<std::shared_ptr<Model>> models) = 0;
     // virtual void setup_program(vec3 direction, vec3 optional_pos) = 0;
@@ -31,7 +31,7 @@ public:
 protected:
     vec3 _pos;
     vec3 _color;
-    vec3 _intensity;
+    float _intensity;
 
     mat4 _projection;
     mat4 _view;

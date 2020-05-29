@@ -2,7 +2,7 @@
 
 #include <iostream>
 
-PointLight::PointLight(vec3 pos, vec3 color, vec3 intensity)
+PointLight::PointLight(vec3 pos, vec3 color, float intensity)
     : Light(color, intensity)
     , _pos(pos)
 {
@@ -95,16 +95,19 @@ void PointLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-
 void PointLight::set_light_in_program(program p)
 {
     p.use();
 
-    auto tmp_id = std::to_string(_id);
-    std::cout << tmp_id << std::endl;
+    auto tmp_id = std::to_string(_id - 1);
     p.addUniformVec3(_pos, ("lights[" + tmp_id + "].pos").c_str());
     p.addUniformVec3(_color, ("lights[" + tmp_id + "].color").c_str());
-    p.addUniformVec3(_intensity, ("lights[" + tmp_id + "].intensity").c_str());
+    p.addUniformFloat(_intensity, ("lights[" + tmp_id + "].intensity").c_str());
+}
+
+void PointLight::set_shadow_cube(program p)
+{
+    auto tmp_id = std::to_string(_id - 1);
     p.addUniformTexture(4 + _id, ("lights[" + tmp_id + "].map").c_str());
     glActiveTexture(GL_TEXTURE4 + _id);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _map);
