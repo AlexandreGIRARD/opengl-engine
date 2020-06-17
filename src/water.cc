@@ -35,7 +35,7 @@ Water::Water(int width, int height, Model &water_surface, float y)
     glGenFramebuffers(1, &_reflection_FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, _reflection_FBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _reflection_tex, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_COMPONENT, GL_TEXTURE_2D, depth, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         exit(-1);
@@ -45,7 +45,7 @@ Water::Water(int width, int height, Model &water_surface, float y)
     glGenFramebuffers(1, &_refraction_FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, _refraction_FBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _refraction_tex, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_COMPONENT, GL_TEXTURE_2D, depth, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         exit(-1);
@@ -78,16 +78,15 @@ void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> 
 void Water::render(std::vector<shared_model> models, Camera cam)
 {
     _middle.use();
-    mat4 view = cam.look_at();
-    _middle.addUniformMat4(view, "view");
-    _middle.addUniformVec3(cam.get_position(), "cam_pos");
-
     //Enabling clip no avoid useless output
     glEnable(GL_CLIP_DISTANCE0);
 
-    // Reflection texture to render
-    _middle.addUniformVec4(_clip_reflection, "clip_plane");
-    glBindFramebuffer(GL_FRAMEBUFFER, _reflection_FBO);
+    // Refraction texture to render
+    mat4 view = cam.look_at();
+    _middle.addUniformMat4(view, "view");
+    _middle.addUniformVec3(cam.get_position(), "cam_pos");
+    _middle.addUniformVec4(_clip_refraction, "clip_plane");
+    glBindFramebuffer(GL_FRAMEBUFFER, _refraction_FBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     for (auto model : models)

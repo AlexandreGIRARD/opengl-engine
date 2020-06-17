@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
     shaders.use();
 
     // Camera view and projection matrices
-    Camera cam = Camera(vec3(0, 0, -2), vec3(0, 0, 1), vec3(0, 1, 0));
+    Camera cam = Camera(vec3(0, -0.2, -2), vec3(0, 0, 1), vec3(0, 1, 0));
     mat4 view = cam.look_at();
     shaders.addUniformVec3(cam.get_position(), "cam_pos");
     shaders.addUniformMat4(view, "view");
@@ -125,52 +125,53 @@ int main(int argc, char *argv[])
     vec3 spec = vec3(0.7, 0.7, 0.7); // rubber
     float shininess = 0.25f;
 
+    /************************   MODEL INIT   ***********************************/
+    std::vector<std::shared_ptr<Model>> models;
     // Models matrix
     mat4 model = mat4(1.0);
-    model = translate(model, vec3(2,-1,2));
+    model = translate(model, vec3(2, -1, 2));
     model = scale(model, vec3(0.5, 0.5, 0.5));
-    auto angle = -150.f;
     auto rad_off = 0.2f;
 
-    std::vector<std::shared_ptr<Model>> models;
-
-    /************************   MODEL INIT   ***********************************/
-    model = rotate(model, radians(angle), vec3(0.0, 1.0, 0.0));
     auto teapot = std::make_shared<Model>("models/teapot_stanford.obj", model, diffuse1, spec, shininess);
     models.emplace_back(teapot);
 
     model = mat4(1.0);
-    model = translate(model, vec3(-2,-0.2, 2));
+    model = translate(model, vec3(-2, 0, 2));
     auto cube = std::make_shared<Model>("models/smooth_sphere.obj", model, diffuse2, spec, shininess);
     models.emplace_back(cube);
 
     model = mat4(1.0);
-    model = scale(model, vec3(5,5,5));
 
-    auto model1 = translate(model, vec3(0,-1, 0));
-    auto plane = std::make_shared<Model>("models/wall.obj", model1, diffuse3, spec, shininess);
+    auto model_trans = translate(model, vec3(0, -3, 0));
+    auto model_scale = scale(model_trans, vec3(5, 5, 5));
+    auto plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
     models.emplace_back(plane);
 
-    auto model2 = rotate(model, radians(-90.f), vec3(1, 0, 0));
-    model2 = translate(model2, vec3(0, -1, 0));
-    plane = std::make_shared<Model>("models/wall.obj", model2, diffuse3, spec, shininess);
+    model_trans = translate(model, vec3(0, 0, 5));
+    auto model_rotate = rotate(model_trans, radians(-90.f), vec3(1, 0, 0));
+    model_scale = scale(model_rotate, vec3(5, 5, 5));
+    plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
     models.emplace_back(plane);
 
-    model2 = rotate(model, radians(-90.f), vec3(0, 0, 1));
-    model2 = translate(model2, vec3(0, -1, 0));
-    plane = std::make_shared<Model>("models/wall.obj", model2, diffuse3, spec, shininess);
+    model_trans = translate(model, vec3(-5, 0, 0));
+    model_rotate = rotate(model_trans, radians(-90.f), vec3(0, 0, 1));
+    model_scale = scale(model_rotate, vec3(5, 5, 5));
+    plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
     models.emplace_back(plane);
 
-    model2 = rotate(model, radians(90.f), vec3(0, 0, 1));
-    model2 = translate(model2, vec3(0, -1, 0));
-    plane = std::make_shared<Model>("models/wall.obj", model2, diffuse3, spec, shininess);
+    model_trans = translate(model, vec3(5, 0, 0));
+    model_rotate = rotate(model_trans, radians(90.f), vec3(0, 0, 1));
+    model_scale = scale(model_rotate, vec3(5, 5, 5));
+    plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
     models.emplace_back(plane);
     /***************************************************************************/
 
     // Init water surface
-    model2 = translate(model, vec3(0, -0.2, 0));
-    auto water_surface = Model("models/wall.obj", model2, diffuse3, spec, shininess);
-    Water water = Water(width, height, water_surface, -0.2);
+    model_trans = translate(model, vec3(0, -1, 0));
+    model_scale = scale(model_trans, vec3(5, 5, 5));
+    auto water_surface = Model("models/wall.obj", model_scale, diffuse3, spec, shininess);
+    Water water = Water(width, height, water_surface, -1);
     water.setup_program(sun, lights);
 
     // Delta time setup
