@@ -1,5 +1,8 @@
 #include "water.hh"
 
+#include "util.hh"
+#include <iostream>
+
 Water::Water(int width, int height, Model &water_surface, float y)
     : _water_surface(water_surface),
       _width(width),
@@ -69,6 +72,10 @@ Water::Water(int width, int height, Model &water_surface, float y)
     _water.add_shader("water_vertex.glsl", GL_VERTEX_SHADER);
     _water.add_shader("water_fragment.glsl", GL_FRAGMENT_SHADER);
     _water.link();
+
+    // Load textures
+    _dudv = load_texture("textures/water/dudv.jpg");
+    _normal_map = load_texture("textures/water/normal.jpg");
 }
 
 void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> lights)
@@ -82,13 +89,16 @@ void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> 
         light->set_light_in_program(_middle);
     _water.use();
     _water.addUniformMat4(projection, "projection");
+
 }
 
-void Water::render(std::vector<shared_model> models, Camera cam)
+void Water::render(std::vector<shared_model> models, Camera cam, float fps)
 {
     _water.use();
     mat4 view = cam.look_at();
     _water.addUniformMat4(view, "view");
+    vec3 pos = cam.get_position();
+    _water.addUniformVec3(pos, "cam_pos");
 
     _middle.use();
     //Enabling clip no avoid useless output
@@ -125,15 +135,24 @@ void Water::render(std::vector<shared_model> models, Camera cam)
     // Water Rendering
     glDisable(GL_CLIP_DISTANCE0);
     _water.use();
+    _move_offset += _wave_speed;
+    _move_offset = _move_offset >= 1.f ? 0.f : _move_offset;
+    _water.addUniformFloat(_move_offset, "move_offset");
+    _water.addUniformTexture(0, "dudv_map");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _dudv);
+    _water.addUniformTexture(1, "normal_map");
+    glActiveTexture(GL_TEXTURE0 + 1);
+    glBindTexture(GL_TEXTURE_2D, _normal_map);
 
     // Bind reflection texture
-    _water.addUniformTexture(0, "reflection_tex");
-    glActiveTexture(GL_TEXTURE0);
+    _water.addUniformTexture(2, "reflection_tex");
+    glActiveTexture(GL_TEXTURE0+2);
     glBindTexture(GL_TEXTURE_2D, _reflection_tex);
 
     //Bind refraction texture
-    _water.addUniformTexture(1, "refraction_tex");
-    glActiveTexture(GL_TEXTURE0+1);
+    _water.addUniformTexture(3, "refraction_tex");
+    glActiveTexture(GL_TEXTURE0+3);
     glBindTexture(GL_TEXTURE_2D, _refraction_tex);
 
     _water_surface.draw(_water);

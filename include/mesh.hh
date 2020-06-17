@@ -16,15 +16,6 @@ struct Vertex
     vec3 position;
     vec3 normal;
     vec2 uv;
-    vec3 tangent;
-    vec3 bitangent;
-};
-
-struct Texture
-{
-    uint id;
-    uint textureId;
-    std::string name;
 };
 
 class Mesh
@@ -37,10 +28,6 @@ public:
 
     std::vector<uint> _indices;
     std::vector<Vertex> _vertices;
-    Texture _texture;
-    Texture _normal;
-    Texture _height;
-    Texture _occlusion;
 
 
 private:

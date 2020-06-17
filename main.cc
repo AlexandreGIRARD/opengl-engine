@@ -17,6 +17,19 @@
 using namespace glm;
 
 float switch_off = 0;
+float fps = 0.f;
+float last_time = 0.f;
+
+void frame_rate(float time)
+{
+    float current_time = time;
+    ++fps;
+    if( current_time - last_time > 1.0f )
+    {
+        last_time = current_time;
+        fps = 0;
+    }
+}
 
 void quit_window(GLFWwindow *window)
 {
@@ -129,11 +142,10 @@ int main(int argc, char *argv[])
     std::vector<std::shared_ptr<Model>> models;
     // Models matrix
     mat4 model = mat4(1.0);
-    model = translate(model, vec3(2, -1, 2));
-    model = scale(model, vec3(0.5, 0.5, 0.5));
+    model = translate(model, vec3(2, 0, 2));
     auto rad_off = 0.2f;
 
-    auto teapot = std::make_shared<Model>("models/teapot_stanford.obj", model, diffuse1, spec, shininess);
+    auto teapot = std::make_shared<Model>("models/teapot_2.obj", model, diffuse1, spec, shininess);
     models.emplace_back(teapot);
 
     model = mat4(1.0);
@@ -194,6 +206,7 @@ int main(int argc, char *argv[])
         // Compute delta time
         delta = glfwGetTime() - time;
         time = glfwGetTime();
+        frame_rate(time);
 
         // Get mouse event (position variations)
         glfwGetCursorPos(window, &new_xpos, &new_ypos);
@@ -248,7 +261,7 @@ int main(int argc, char *argv[])
         for (auto model : models)
             model->draw(shaders);
 
-        water.render(models, cam);
+        water.render(models, cam, fps);
 
         // Check and call events
         glfwSwapBuffers(window);

@@ -23,7 +23,7 @@ void Model::load_model(std::string path)
     const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
-        std::cout << "ERROR::ASSIMP::" << importer.GetErrorString() << "\n";
+        std::cout << "Import model error" << importer.GetErrorString() << "\n";
         return;
     }
     _dir = path.substr(0, path.find_last_of('/'));
@@ -48,13 +48,13 @@ Mesh Model::process_mesh(aiMesh *mesh, const aiScene *scene)
 {
     std::vector<Vertex> vertices;
     std::vector<uint> indices;
-    std::vector<Texture> textures;
 
     for (uint i = 0; i < mesh->mNumVertices; i++)
     {
         Vertex vertex;
         vertex.position = vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
         vertex.normal = vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
+        vertex.uv = vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
 
         vertices.emplace_back(vertex);
     }

@@ -54,7 +54,8 @@ float point_shadow_coef(point_light light, vec3 pos, vec3 light_vect)
         return 1.0;
     // In shadow
     float penumbra = (d_receiver - d_blocker) * 0.5 / d_blocker;
-    return 1.0 - (0.5 *abs(penumbra));
+    // return 1.0 - (0.5 *abs(penumbra));
+    return 0.5;
 }
 
 /*
