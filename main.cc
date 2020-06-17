@@ -12,6 +12,8 @@
 #include "directional_light.hh"
 #include "point_light.hh"
 #include "deferred.hh"
+#include "skybox.hh"
+
 
 using namespace glm;
 
@@ -175,6 +177,11 @@ int main(int argc, char *argv[])
     float mouse_x, mouse_y;
     glfwGetCursorPos(window, &xpos, &ypos);
 
+    // Load Skybox
+    std::vector<std::string> faces(6, "media/sky.jpg");
+    Skybox skybox = Skybox(faces);
+    unsigned int cubemapTexture;
+
     // Render loop
     while(!glfwWindowShouldClose(window))
     {
@@ -195,6 +202,11 @@ int main(int argc, char *argv[])
         // Update camera position
         cam.update(window, (float)delta, mouse_x, mouse_y);
 
+        // Update skybox
+        cubemapTexture = skybox.loadCubemap();
+        skybox.setup_program();
+        skybox.draw_cubemap(cubemapTexture);
+
         // Update camera view and projection matrices
         shaders.use();
         mat4 view = cam.look_at();
@@ -214,7 +226,6 @@ int main(int argc, char *argv[])
         auto cube_model = cube->get_model();
         cube_model = rotate(cube_model, radians(-rad_off), vec3(1.0, 0.0, 0.0));
         cube->set_model(cube_model);
-
 
         // Deferred shading
         deferred.update_viewport(view, projection);
