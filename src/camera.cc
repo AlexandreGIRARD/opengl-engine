@@ -10,6 +10,11 @@ float Camera::get_speed()
     return _speed;
 }
 
+float Camera::get_mouse_speed()
+{
+    return _mouse_speed;
+}
+
 glm::vec3 Camera::get_position()
 {
     return _position;
@@ -38,6 +43,11 @@ glm::vec3 Camera::get_right()
 void Camera::set_speed(float speed)
 {
     _speed = speed;
+}
+
+void Camera::set_mouse_speed(float mouse_speed)
+{
+    _mouse_speed = mouse_speed;
 }
 
 void Camera::set_position(glm::vec3 position)
@@ -86,7 +96,8 @@ void Camera::update(GLFWwindow *window, float delta, float mouse_x, float mouse_
     }
 
     // Mouse events
-    set_forward(get_forward() + get_right() * mouse_x * delta);
-    set_forward(get_forward() - get_up() * mouse_y * delta);
+    set_forward(get_forward() + get_right() * mouse_x * delta * get_mouse_speed());
+    set_forward(get_forward() - get_up()    * mouse_y * delta * get_mouse_speed());
+    set_forward(glm::normalize(get_forward()));
     set_right(- cross(get_up(), get_forward()));
 }

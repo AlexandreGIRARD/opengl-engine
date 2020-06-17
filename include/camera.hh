@@ -14,7 +14,8 @@ public:
     Camera()
     {}
     Camera(vec3 position, vec3 target, vec3 up)
-        : _speed(1)
+        : _speed(8)
+        , _mouse_speed(0.1)
         , _position(position)
         , _target(target)
         , _up(up)
@@ -25,6 +26,7 @@ public:
     mat4 look_at();
 
     float get_speed();
+    float get_mouse_speed();
     vec3 get_position();
     vec3 get_target();
     vec3 get_up();
@@ -32,6 +34,7 @@ public:
     vec3 get_right();
 
     void set_speed(float speed);
+    void set_mouse_speed(float mouse_speed);
     void set_position(vec3 position);
     void set_target(vec3 target);
     void set_up(vec3 up);
@@ -42,6 +45,7 @@ public:
 
 private:
     float _speed;
+    float _mouse_speed;
     vec3 _position;
     vec3 _target;
     vec3 _up;
