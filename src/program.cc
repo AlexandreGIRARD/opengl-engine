@@ -63,6 +63,11 @@ void program::addUniformVec3(const glm::vec3 vector, const char *name)
     glUniform3f(glGetUniformLocation(_id_program, name), vector.x, vector.y, vector.z);
 }
 
+void program::addUniformVec4(const glm::vec4 vector, const char *name)
+{
+    glUniform4f(glGetUniformLocation(_id_program, name), vector.x, vector.y, vector.z, vector.w);
+}
+
 void program::addUniformMat4(glm::mat4 &matrix, const char *name)
 {
     int location = glGetUniformLocation(_id_program, name);

@@ -10,12 +10,12 @@ struct material
 in vec3 frag_normal;
 in vec3 frag_pos;
 
+uniform material mtl;
+
 layout (location = 0) out vec3 color;
 layout (location = 1) out vec4 normal;
 layout (location = 2) out vec4 position;
 layout (location = 3) out vec3 specular;
-
-uniform material mtl;
 
 void main()
 {

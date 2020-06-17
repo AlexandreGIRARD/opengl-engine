@@ -12,6 +12,7 @@
 #include "directional_light.hh"
 #include "point_light.hh"
 #include "deferred.hh"
+#include "water.hh"
 
 using namespace glm;
 
@@ -133,6 +134,7 @@ int main(int argc, char *argv[])
 
     std::vector<std::shared_ptr<Model>> models;
 
+    /************************   MODEL INIT   ***********************************/
     model = rotate(model, radians(angle), vec3(0.0, 1.0, 0.0));
     auto teapot = std::make_shared<Model>("models/teapot_stanford.obj", model, diffuse1, spec, shininess);
     models.emplace_back(teapot);
@@ -145,7 +147,7 @@ int main(int argc, char *argv[])
     model = mat4(1.0);
     model = scale(model, vec3(5,5,5));
 
-    auto model1 = translate(model, vec3(0,-0.2, 0));
+    auto model1 = translate(model, vec3(0,-1, 0));
     auto plane = std::make_shared<Model>("models/wall.obj", model1, diffuse3, spec, shininess);
     models.emplace_back(plane);
 
@@ -163,6 +165,13 @@ int main(int argc, char *argv[])
     model2 = translate(model2, vec3(0, -1, 0));
     plane = std::make_shared<Model>("models/wall.obj", model2, diffuse3, spec, shininess);
     models.emplace_back(plane);
+    /***************************************************************************/
+
+    // Init water surface
+    model2 = translate(model, vec3(0, -0.2, 0));
+    auto water_surface = Model("models/wall.obj", model2, diffuse3, spec, shininess);
+    Water water = Water(width, height, water_surface, -0.2);
+    water.setup_program(sun, lights);
 
     // Delta time setup
     double time = glfwGetTime();
@@ -242,6 +251,7 @@ int main(int argc, char *argv[])
         for (auto model : models)
             model->draw(shaders);
 
+        water.render(models, cam);
 
         // Check and call events
         glfwSwapBuffers(window);
