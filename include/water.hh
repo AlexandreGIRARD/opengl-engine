@@ -30,4 +30,5 @@ private:
 
     int _width;
     int _height;
+    float _y;
 };

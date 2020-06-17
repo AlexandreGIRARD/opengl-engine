@@ -45,6 +45,11 @@ void Camera::set_position(glm::vec3 position)
     _position = position;
 }
 
+void Camera::set_position_y(float y)
+{
+    _position.y = y;
+}
+
 void Camera::set_target(glm::vec3 target)
 {
     _target = target;
@@ -86,7 +91,51 @@ void Camera::update(GLFWwindow *window, float delta, float mouse_x, float mouse_
     }
 
     // Mouse events
-    set_forward(get_forward() + get_right() * mouse_x * delta);
-    set_forward(get_forward() - get_up() * mouse_y * delta);
-    set_right(- cross(get_up(), get_forward()));
+    mouse_move(mouse_x, mouse_y);
+}
+
+void Camera::mouse_move(double xpos, double ypos)
+{
+    _mouse_pos.x = xpos;
+    _mouse_pos.y = ypos;
+
+    if (_first_move)
+    {
+        _last_mouse_pos = vec2(xpos, ypos);
+        _first_move = false;
+    }
+
+    float offset_x = xpos - _last_mouse_pos.x;
+    float offset_y = _last_mouse_pos.y - ypos;
+
+    _last_mouse_pos = vec2(xpos, ypos);
+
+    offset_x *= _sensitivity;
+    offset_y *= _sensitivity;
+
+    _yaw   += offset_x;
+    _pitch += offset_y;
+
+    if(_pitch > 89.0f)
+        _pitch = 89.0f;
+    if(_pitch < -89.0f)
+        _pitch = -89.0f;
+
+    _forward.x = cos(radians(_yaw)) * cos(radians(_pitch));
+    _forward.y = sin(radians(_pitch));
+    _forward.z = sin(radians(_yaw)) * cos(radians(_pitch));
+    _forward = normalize(_forward);
+    _right = normalize(cross(_forward, vec3(0.f, 1.f, 0.f)));
+    _up = normalize(cross(_right, _forward));
+}
+
+void Camera::invert_pitch()
+{
+    _pitch = -_pitch;
+    _forward.x = cos(radians(_yaw)) * cos(radians(_pitch));
+    _forward.y = sin(radians(_pitch));
+    _forward.z = sin(radians(_yaw)) * cos(radians(_pitch));
+    _forward = normalize(_forward);
+    _right = normalize(cross(_forward, vec3(0.f, 1.f, 0.f)));
+    _up = normalize(cross(_right, _forward));
 }

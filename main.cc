@@ -197,13 +197,9 @@ int main(int argc, char *argv[])
 
         // Get mouse event (position variations)
         glfwGetCursorPos(window, &new_xpos, &new_ypos);
-        mouse_x = (float)new_xpos - xpos;
-        mouse_y = (float)new_ypos - ypos;
-        xpos = new_xpos;
-        ypos = new_ypos;
 
         // Update camera position
-        cam.update(window, (float)delta, mouse_x, mouse_y);
+        cam.update(window, (float)delta, new_xpos, new_ypos);
 
         // Update camera view and projection matrices
         shaders.use();
