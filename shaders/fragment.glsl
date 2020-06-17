@@ -47,26 +47,32 @@ out vec4 color;
 */
 float point_shadow_coef(point_light light, vec3 pos, vec3 light_vect)
 {
-    float dist = length(pos - light.pos);
-    if (dist > texture(light.map, -light_vect).r + BIAS)
-        return 0.5;
-    return 1.0;
+    float d_receiver = length(pos - light.pos);
+    float d_blocker = texture(light.map, -light_vect).r;
+    // In light
+    if (d_receiver < d_blocker + BIAS)
+        return 1.0;
+    // In shadow
+    float penumbra = (d_receiver - d_blocker) * 0.5 / d_blocker;
+    return 1.0 - (0.5 *abs(penumbra));
 }
 
 /*
- * Compute shadow coef for the sunlight with uv_coord and shadow_map
+ * Compute shadow coef for the sunlight with uv_coord and shadow_map with pcf3
 */
-float sun_shadow_coef(vec2 uv_coord, sampler2D shadow_map)
+float sun_shadow_coef(vec2 uv_coord, sampler2D shadow_map, int filter_size)
 {
-    float shadow = 16.0;
+    float total = 0;
     vec2 size = 1.0 / textureSize(shadow_map, 0);
-    for (float y = -1.5; y <= 1.5; y += 1.0) {
-       for (float x = -1.5; x <= 1.5; x += 1.0) {
+    for (float y = -filter_size; y <= filter_size; y+=1.5) {
+       for (float x = -filter_size; x <= filter_size; x+=1.5) {
            float tmp = texture(shadow_map, uv_coord.xy + vec2(x, y) * size).r;
-           shadow -= shadow_uv.z - BIAS > tmp ? 1.0 : 0.0;
+           total += shadow_uv.z - BIAS > tmp ? 1.0 : 0.0;
        }
     }
-    return shadow / 16.0 > 0.5 ? shadow / 16.0 : 0.5;
+    total /= (filter_size * 2.0 + 1.0) * (filter_size * 2.0 + 1.0);
+
+    return 1.0 - (total * shadow_uv.w);
 }
 
 /*
@@ -75,7 +81,7 @@ float sun_shadow_coef(vec2 uv_coord, sampler2D shadow_map)
 vec3 get_sun_light(sun_light light, deferred_info infos, vec3 view_vect, vec2 uv)
 {
 
-    float shadow = sun_shadow_coef(uv, light.map);
+    float shadow = sun_shadow_coef(uv, light.map, 3);
     // shadow = 1.0;
     vec3 ambient = 0.1 * infos.color;
 

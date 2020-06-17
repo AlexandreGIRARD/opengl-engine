@@ -100,19 +100,19 @@ int main(int argc, char *argv[])
     Deferred deferred = Deferred(width, height);
 
     // Sun Light init
-    // DirectionalLight light1 = DirectionalLight(vec3(0, 0.5, -1), vec3(1, 1, 1), vec3(1, 1, 1));
-    // light1.setup_program(vec3(0, 0, 0), vec3(0, 0.5, -1));
-    // light1.set_light_in_program(shaders);
+    DirectionalLight sun = DirectionalLight(vec3(0, 0.5, -1), vec3(1, 1, 1), 1.f);
+    sun.setup_program(vec3(0, 0, 0), vec3(0, 0.5, -1));
+    sun.set_light_in_program(shaders);
 
     // Point Lights init
     std::vector<std::shared_ptr<PointLight>> lights;
 
-    auto light2 = std::make_shared<PointLight>(vec3(0,0.2,2), vec3(1, 1, 1), 1.f);
+    auto light2 = std::make_shared<PointLight>(vec3(0,0.2,2), vec3(1, 1, 1), 0.4f);
     light2->setup_program();
     light2->set_light_in_program(shaders);
     lights.emplace_back(light2);
 
-    auto light = std::make_shared<PointLight>(vec3(1,0.2,0), vec3(1, 1, 1), 0.5f);
+    auto light = std::make_shared<PointLight>(vec3(0,0.2,0), vec3(1, 1, 1), 0.4f);
     light->setup_program();
     light->set_light_in_program(shaders);
     lights.emplace_back(light);
@@ -221,7 +221,7 @@ int main(int argc, char *argv[])
         deferred.render(models);
 
         // Shadow computing
-        // light1.draw_shadow_map(models);
+        sun.draw_shadow_map(models);
         for (auto light : lights)
             light->draw_shadow_map(models);
 
@@ -233,6 +233,7 @@ int main(int argc, char *argv[])
 
         deferred.set_textures(shaders);
 
+        sun.set_shadow_map(shaders);
         for (auto light : lights)
             light->set_shadow_cube(shaders);
 
