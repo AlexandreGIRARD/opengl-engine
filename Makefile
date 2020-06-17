@@ -12,3 +12,6 @@ EXEC = main
 
 all:
 	$(CXX)  $(CXX_FLAGS) -o $(EXEC) $(CXX_FILES) $(LDXX_FLAGS)
+
+clean:
+	rm $(EXEC)
