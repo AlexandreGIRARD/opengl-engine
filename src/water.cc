@@ -92,7 +92,9 @@ void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> 
         light->set_light_in_program(_middle);
     _water.use();
     _water.addUniformMat4(projection, "projection");
-
+    sun_light.set_light_in_program(_water);
+    for (auto light : lights)
+        light->set_light_in_program(_water);
 }
 
 void Water::render(std::vector<shared_model> models, Camera cam, float fps)

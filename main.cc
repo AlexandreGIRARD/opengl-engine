@@ -121,12 +121,12 @@ int main(int argc, char *argv[])
     // Point Lights init
     std::vector<std::shared_ptr<PointLight>> lights;
 
-    auto light2 = std::make_shared<PointLight>(vec3(0,0.2,2), vec3(1, 1, 1), 0.4f);
+    auto light2 = std::make_shared<PointLight>(vec3(0,0,3), vec3(1, 1, 1), 0.4f);
     light2->setup_program();
     light2->set_light_in_program(shaders);
     lights.emplace_back(light2);
 
-    auto light = std::make_shared<PointLight>(vec3(0,0.2,0), vec3(1, 1, 1), 0.4f);
+    auto light = std::make_shared<PointLight>(vec3(0,0,-1), vec3(1, 1, 1), 0.4f);
     light->setup_program();
     light->set_light_in_program(shaders);
     lights.emplace_back(light);
@@ -166,6 +166,12 @@ int main(int argc, char *argv[])
     plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
     models.emplace_back(plane);
 
+    model_trans = translate(model, vec3(0, 0, -5));
+    model_rotate = rotate(model_trans, radians(90.f), vec3(1, 0, 0));
+    model_scale = scale(model_rotate, vec3(5, 5, 5));
+    plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
+    models.emplace_back(plane);
+
     model_trans = translate(model, vec3(-5, 0, 0));
     model_rotate = rotate(model_trans, radians(-90.f), vec3(0, 0, 1));
     model_scale = scale(model_rotate, vec3(5, 5, 5));
@@ -181,7 +187,7 @@ int main(int argc, char *argv[])
 
     // Init water surface
     model_trans = translate(model, vec3(0, -1, 0));
-    model_scale = scale(model_trans, vec3(6, 6, 6));
+    model_scale = scale(model_trans, vec3(5, 5, 5));
     auto water_surface = Model("models/wall.obj", model_scale, diffuse3, spec, shininess);
     Water water = Water(width, height, water_surface, -1);
     water.setup_program(sun, lights);
