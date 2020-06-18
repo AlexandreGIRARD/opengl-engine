@@ -26,6 +26,7 @@ private:
 
     uint _reflection_tex;
     uint _refraction_tex;
+    uint _depth;
     uint _dudv;
     uint _normal_map;
 

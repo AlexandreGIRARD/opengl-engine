@@ -57,6 +57,5 @@ void main()
         vec3 light_vect = normalize(lights[i].pos - frag_pos);
         final_color += get_color(light_vect, lights[i].color, lights[i].intensity, view_vect);
     }
-
-    color = vec4(final_color, 1.0);
+    color = vec4(final_color, gl_FragCoord.z);
 }

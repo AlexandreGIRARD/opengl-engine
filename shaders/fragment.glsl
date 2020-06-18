@@ -139,5 +139,5 @@ void main()
         final_color += get_light(lights[i], infos, view_vect);
 
 
-    color = vec4(final_color, 1.0);
+    color = vec4(final_color, gl_FragCoord.z);
 }

@@ -3,6 +3,9 @@
 #include "util.hh"
 #include <iostream>
 
+static uint buffer[2] = {GL_COLOR_ATTACHMENT0,
+                         GL_COLOR_ATTACHMENT1};
+
 Water::Water(int width, int height, Model &water_surface, float y)
     : _water_surface(water_surface),
       _width(width),
@@ -16,7 +19,7 @@ Water::Water(int width, int height, Model &water_surface, float y)
     // Reflection texture
     glGenTextures(1, &_reflection_tex);
     glBindTexture(GL_TEXTURE_2D, _reflection_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -25,7 +28,7 @@ Water::Water(int width, int height, Model &water_surface, float y)
     // Refraction texture
     glGenTextures(1, &_refraction_tex);
     glBindTexture(GL_TEXTURE_2D, _refraction_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -127,6 +130,8 @@ void Water::render(std::vector<shared_model> models, Camera cam, float fps)
     _middle.addUniformVec4(_clip_reflection, "clip_plane");
     glBindFramebuffer(GL_FRAMEBUFFER, _reflection_FBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // glDrawBuffers(2, buffer);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     for (auto model : models)
         model->draw(_middle);
@@ -136,7 +141,7 @@ void Water::render(std::vector<shared_model> models, Camera cam, float fps)
     glDisable(GL_CLIP_DISTANCE0);
     _water.use();
     _move_offset += _wave_speed;
-    _move_offset = _move_offset >= 1.f ? 0.f : _move_offset;
+    // _move_offset = _move_offset >= 1.f ? 0.f : _move_offset;
     _water.addUniformFloat(_move_offset, "move_offset");
     _water.addUniformTexture(0, "dudv_map");
     glActiveTexture(GL_TEXTURE0);
@@ -153,7 +158,13 @@ void Water::render(std::vector<shared_model> models, Camera cam, float fps)
     //Bind refraction texture
     _water.addUniformTexture(3, "refraction_tex");
     glActiveTexture(GL_TEXTURE0+3);
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, _width, _height, 0);
+
+    // Depth texture
+    _water.addUniformTexture(4, "depth_tex");
+    glActiveTexture(GL_TEXTURE0+4);
     glBindTexture(GL_TEXTURE_2D, _refraction_tex);
+
 
     _water_surface.draw(_water);
 }

@@ -101,13 +101,13 @@ int main(int argc, char *argv[])
     shaders.use();
 
     // Camera view and projection matrices
-    Camera cam = Camera(vec3(0, -0.2, -2), vec3(0, 0, 1), vec3(0, 1, 0));
+    Camera cam = Camera(vec3(0, 1, -2), vec3(0, 0, 1), vec3(0, 1, 0));
     mat4 view = cam.look_at();
     shaders.addUniformVec3(cam.get_position(), "cam_pos");
     shaders.addUniformMat4(view, "view");
 
     mat4 projection = mat4(1.0);
-    projection = perspective(radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
+    projection = perspective(radians(60.0f), (float)width / (float)height, 0.01f, 50.0f);
     shaders.addUniformMat4(projection, "projection");
 
     // Add view projetcion to deferred shaders
@@ -181,7 +181,7 @@ int main(int argc, char *argv[])
 
     // Init water surface
     model_trans = translate(model, vec3(0, -1, 0));
-    model_scale = scale(model_trans, vec3(5, 5, 5));
+    model_scale = scale(model_trans, vec3(6, 6, 6));
     auto water_surface = Model("models/wall.obj", model_scale, diffuse3, spec, shininess);
     Water water = Water(width, height, water_surface, -1);
     water.setup_program(sun, lights);
