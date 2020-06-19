@@ -3,9 +3,6 @@
 #include "util.hh"
 #include <iostream>
 
-static uint buffer[2] = {GL_COLOR_ATTACHMENT0,
-                         GL_COLOR_ATTACHMENT1};
-
 Water::Water(int width, int height, Model &water_surface, float y)
     : _water_surface(water_surface),
       _width(width),
@@ -26,9 +23,9 @@ Water::Water(int width, int height, Model &water_surface, float y)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Refraction texture
-    glGenTextures(1, &_refraction_tex);
-    glBindTexture(GL_TEXTURE_2D, _refraction_tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+    glGenTextures(1, &_depth_tex);
+    glBindTexture(GL_TEXTURE_2D, _depth_tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -57,18 +54,23 @@ Water::Water(int width, int height, Model &water_surface, float y)
     // Refraction FBO
     glGenFramebuffers(1, &_refraction_FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, _refraction_FBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _refraction_tex, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depth_tex, 0);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
         exit(-1);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    // Create program for rendering reflection and refraction texture
-    _middle = program();
-    _middle.add_shader("clipped_vertex.glsl", GL_VERTEX_SHADER);
-    _middle.add_shader("clipped_fragment.glsl", GL_FRAGMENT_SHADER);
-    _middle.link();
+    // Create program for rendering reflection texture
+    _sky = program();
+    _sky.add_shader("fast_vertex.glsl", GL_VERTEX_SHADER);
+    _sky.add_shader("fast_fragment.glsl", GL_FRAGMENT_SHADER);
+    _sky.link();
+
+    // Create program for rendering refraction depth texture
+    _ground = program();
+    _ground.add_shader("depth_vertex.glsl", GL_VERTEX_SHADER);
+    _ground.add_shader("depth_fragment.glsl", GL_FRAGMENT_SHADER);
+    _ground.link();
 
     // Create main water program
     _water = program();
@@ -83,13 +85,20 @@ Water::Water(int width, int height, Model &water_surface, float y)
 
 void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> lights)
 {
-    _middle.use();
+    // Reflection program init uniform
+    _sky.use();
     mat4 projection = mat4(1.0);
     projection = perspective(radians(60.0f), (float)_width / (float)_height, 0.1f, 100.0f);
-    _middle.addUniformMat4(projection, "projection");
-    sun_light.set_light_in_program(_middle);
+    _sky.addUniformMat4(projection, "projection");
+    sun_light.set_light_in_program(_sky);
     for (auto light : lights)
-        light->set_light_in_program(_middle);
+        light->set_light_in_program(_sky);
+
+    // Refraction program init uniform
+    _ground.use();
+    _ground.addUniformMat4(projection, "projection");
+
+    // Water program init uniform
     _water.use();
     _water.addUniformMat4(projection, "projection");
     sun_light.set_light_in_program(_water);
@@ -101,43 +110,40 @@ void Water::render(std::vector<shared_model> models, Camera cam, float fps)
 {
     _water.use();
     mat4 view = cam.look_at();
-    _water.addUniformMat4(view, "view");
     vec3 pos = cam.get_position();
+    _water.addUniformMat4(view, "view");
     _water.addUniformVec3(pos, "cam_pos");
 
-    _middle.use();
     //Enabling clip no avoid useless output
     glEnable(GL_CLIP_DISTANCE0);
 
     // Refraction texture to render
-    view = cam.look_at();
-    _middle.addUniformMat4(view, "view");
-    _middle.addUniformVec3(cam.get_position(), "cam_pos");
-    _middle.addUniformVec4(_clip_refraction, "clip_plane");
+    _ground.use();
+    _ground.addUniformMat4(view, "view");
+    _ground.addUniformVec3(pos, "cam_pos");
+    _ground.addUniformVec4(_clip_refraction, "clip_plane");
     glBindFramebuffer(GL_FRAMEBUFFER, _refraction_FBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    glDrawBuffer(GL_NONE);
     for (auto model : models)
-        model->draw(_middle);
-
+        model->draw(_ground);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Reflection texture to render
+    _sky.use();
     float new_y = 2 * (cam.get_position().y - _y);
     cam.set_position_y(cam.get_position().y - new_y);
     cam.invert_pitch();
     view = cam.look_at();
-    _middle.addUniformMat4(view, "view");
-    _middle.addUniformVec3(cam.get_position(), "cam_pos");
-    _middle.addUniformVec4(_clip_reflection, "clip_plane");
+    _sky.addUniformMat4(view, "view");
+    _sky.addUniformVec3(cam.get_position(), "cam_pos");
+    _sky.addUniformVec4(_clip_reflection, "clip_plane");
     glBindFramebuffer(GL_FRAMEBUFFER, _reflection_FBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    // glDrawBuffers(2, buffer);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     for (auto model : models)
-        model->draw(_middle);
-
+        model->draw(_sky);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     // Water Rendering
     glDisable(GL_CLIP_DISTANCE0);
@@ -165,7 +171,7 @@ void Water::render(std::vector<shared_model> models, Camera cam, float fps)
     // Depth texture
     _water.addUniformTexture(4, "depth_tex");
     glActiveTexture(GL_TEXTURE0+4);
-    glBindTexture(GL_TEXTURE_2D, _refraction_tex);
+    glBindTexture(GL_TEXTURE_2D, _depth_tex);
 
 
     _water_surface.draw(_water);

@@ -19,14 +19,14 @@ public:
 private:
     Model _water_surface;
     program _water;
-    program _middle;
+    program _sky;
+    program _ground;
 
     uint _reflection_FBO;
     uint _refraction_FBO;
 
     uint _reflection_tex;
-    uint _refraction_tex;
-    uint _depth;
+    uint _depth_tex;
     uint _dudv;
     uint _normal_map;
 

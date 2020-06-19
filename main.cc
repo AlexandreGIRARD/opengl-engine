@@ -149,13 +149,13 @@ int main(int argc, char *argv[])
     models.emplace_back(teapot);
 
     model = mat4(1.0);
-    model = translate(model, vec3(-2, 0, 2));
+    model = translate(model, vec3(-2, -2, 2));
     auto cube = std::make_shared<Model>("models/smooth_sphere.obj", model, diffuse2, spec, shininess);
     models.emplace_back(cube);
 
     model = mat4(1.0);
 
-    auto model_trans = translate(model, vec3(0, -3, 0));
+    auto model_trans = translate(model, vec3(0, -5, 0));
     auto model_scale = scale(model_trans, vec3(5, 5, 5));
     auto plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
     models.emplace_back(plane);
