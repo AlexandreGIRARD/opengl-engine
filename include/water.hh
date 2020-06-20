@@ -14,7 +14,7 @@ class Water
 public:
     Water(int width, int height, Model &water_surface, float y);
     void setup_program(DirectionalLight sun_light, std::vector<shared_light> lights);
-    void render(std::vector<shared_model> models, Camera cam, float fps);
+    void render(std::vector<shared_model> models, Camera cam, float fps, uint depth);
 
 private:
     Model _water_surface;

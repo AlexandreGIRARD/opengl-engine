@@ -1,14 +1,33 @@
-# OpenGL Project
+# OpenGL Engine Project
 
-This project is implemented using OpenGL 4.3 and C++.
+The purpose of this project is to implement an engine using OpenGL.
 
-It used several external libraries:
+It is implemented using OpenGL 4.3 and C++.
+
+## Features
+- Shadow Mapping with directional and point lights.
+- Water Rendering (without geometry)
+- Deferred Shading
+
+## Build
+```sh
+# Build
+make -j
+```
+```sh
+# Run
+./main
+```
+
+## Libraries
 - [GLFW](https://www.glfw.org/) --> OpenGL context and window API
+- [GLAD](https://github.com/Dav1dde/glad) --> OpenGL loader
 - [Assimp](https://www.assimp.org/) --> 3D objects parser
-- [Glad](https://github.com/Dav1dde/glad) --> OpenGL loader
-- [glm](https://glm.g-truc.net/0.9.2/api/index.html) --> Vectors, matrices ... operations header
-- [stbi_image](https://github.com/nothings/stb) --> Image loader
+- [GLM](https://glm.g-truc.net/0.9.2/api/index.html) --> Vectors, matrices ... operations header
+- [STB](https://github.com/nothings/stb) --> Image loader
 
-In order to use this project you must install GLFW and assimp on your computer.
+In order to use this project you must install GLFW and Assimp on your computer.
 
-:exclamation::exclamation: For now all textures should be at **jpeg** format.
+:exclamation::exclamation: All textures should be at **jpeg** format.
+
+## Results

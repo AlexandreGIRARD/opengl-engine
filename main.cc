@@ -136,21 +136,23 @@ int main(int argc, char *argv[])
     vec3 diffuse2 = vec3(0,1,1); //Cyan
     vec3 diffuse3 = vec3(0.4,0.4,0.4); //Green
     vec3 spec = vec3(0.7, 0.7, 0.7); // rubber
+    vec3 spec2 = vec3(0.1, 1.0, 0.7);
     float shininess = 0.25f;
 
     /************************   MODEL INIT   ***********************************/
     std::vector<std::shared_ptr<Model>> models;
     // Models matrix
     mat4 model = mat4(1.0);
-    model = translate(model, vec3(2, 0, 2));
+    model = translate(model, vec3(2, -1, 2));
+    model = scale(model, vec3(0.6, 0.6, 0.6));
     auto rad_off = 0.2f;
 
-    auto teapot = std::make_shared<Model>("models/teapot_2.obj", model, diffuse1, spec, shininess);
+    auto teapot = std::make_shared<Model>("models/teapot_stanford.obj", model, diffuse1, spec, shininess);
     models.emplace_back(teapot);
 
     model = mat4(1.0);
     model = translate(model, vec3(-2, -2, 2));
-    auto cube = std::make_shared<Model>("models/smooth_sphere.obj", model, diffuse2, spec, shininess);
+    auto cube = std::make_shared<Model>("models/smooth_sphere.obj", model, diffuse2, spec2, shininess);
     models.emplace_back(cube);
 
     model = mat4(1.0);
@@ -267,7 +269,7 @@ int main(int argc, char *argv[])
         for (auto model : models)
             model->draw(shaders);
 
-        water.render(models, cam, fps);
+        water.render(models, cam, fps, deferred.get_depth());
 
         // Check and call events
         glfwSwapBuffers(window);

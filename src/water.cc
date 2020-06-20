@@ -66,12 +66,6 @@ Water::Water(int width, int height, Model &water_surface, float y)
     _sky.add_shader("fast_fragment.glsl", GL_FRAGMENT_SHADER);
     _sky.link();
 
-    // Create program for rendering refraction depth texture
-    _ground = program();
-    _ground.add_shader("depth_vertex.glsl", GL_VERTEX_SHADER);
-    _ground.add_shader("depth_fragment.glsl", GL_FRAGMENT_SHADER);
-    _ground.link();
-
     // Create main water program
     _water = program();
     _water.add_shader("water_vertex.glsl", GL_VERTEX_SHADER);
@@ -94,10 +88,6 @@ void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> 
     for (auto light : lights)
         light->set_light_in_program(_sky);
 
-    // Refraction program init uniform
-    _ground.use();
-    _ground.addUniformMat4(projection, "projection");
-
     // Water program init uniform
     _water.use();
     _water.addUniformMat4(projection, "projection");
@@ -106,7 +96,7 @@ void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> 
         light->set_light_in_program(_water);
 }
 
-void Water::render(std::vector<shared_model> models, Camera cam, float fps)
+void Water::render(std::vector<shared_model> models, Camera cam, float fps, uint depth)
 {
     _water.use();
     mat4 view = cam.look_at();
@@ -116,18 +106,6 @@ void Water::render(std::vector<shared_model> models, Camera cam, float fps)
 
     //Enabling clip no avoid useless output
     glEnable(GL_CLIP_DISTANCE0);
-
-    // Refraction texture to render
-    _ground.use();
-    _ground.addUniformMat4(view, "view");
-    _ground.addUniformVec3(pos, "cam_pos");
-    _ground.addUniformVec4(_clip_refraction, "clip_plane");
-    glBindFramebuffer(GL_FRAMEBUFFER, _refraction_FBO);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDrawBuffer(GL_NONE);
-    for (auto model : models)
-        model->draw(_ground);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
     // Reflection texture to render
     _sky.use();
@@ -145,6 +123,7 @@ void Water::render(std::vector<shared_model> models, Camera cam, float fps)
     for (auto model : models)
         model->draw(_sky);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
     // Water Rendering
     glDisable(GL_CLIP_DISTANCE0);
     _water.use();
@@ -171,7 +150,7 @@ void Water::render(std::vector<shared_model> models, Camera cam, float fps)
     // Depth texture
     _water.addUniformTexture(4, "depth_tex");
     glActiveTexture(GL_TEXTURE0+4);
-    glBindTexture(GL_TEXTURE_2D, _depth_tex);
+    glBindTexture(GL_TEXTURE_2D, depth);
 
 
     _water_surface.draw(_water);

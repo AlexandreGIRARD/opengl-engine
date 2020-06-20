@@ -44,9 +44,8 @@ Deferred::Deferred(int width, int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // depth texture
-    uint depth;
-    glGenTextures(1, &depth);
-    glBindTexture(GL_TEXTURE_2D, depth);
+    glGenTextures(1, &_depth);
+    glBindTexture(GL_TEXTURE_2D, _depth);
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -61,7 +60,7 @@ Deferred::Deferred(int width, int height)
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, GL_TEXTURE_2D, _normals, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT2, GL_TEXTURE_2D, _position, 0);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT3, GL_TEXTURE_2D, _specular, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depth, 0);
 
     glDrawBuffers(4, buffer);
 
@@ -112,4 +111,9 @@ void Deferred::set_textures(program &p)
     p.addUniformTexture(3, "def_specular");
     glActiveTexture(GL_TEXTURE0+3);
     glBindTexture(GL_TEXTURE_2D, _specular);
+}
+
+uint Deferred::get_depth()
+{
+    return _depth;
 }

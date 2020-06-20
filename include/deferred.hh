@@ -12,11 +12,13 @@ public:
     void update_viewport(mat4 &view, mat4 &projection);
     void render(std::vector<std::shared_ptr<Model>> models);
     void set_textures(program &p);
+    uint get_depth();
 private:
     program _program;
     uint _FBO;
     uint _colors;
     uint _normals;
     uint _specular;
-    uint _position; // Optional
+    uint _position;
+    uint _depth;
 };
