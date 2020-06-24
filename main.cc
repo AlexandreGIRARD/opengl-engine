@@ -13,6 +13,8 @@
 #include "point_light.hh"
 #include "deferred.hh"
 #include "water.hh"
+#include "normal_material.hh"
+#include "textured_material.hh"
 
 using namespace glm;
 
@@ -116,28 +118,26 @@ int main(int argc, char *argv[])
     // Sun Light init
     DirectionalLight sun = DirectionalLight(vec3(0, 0.5, -1), vec3(1, 1, 1), 1.f);
     sun.setup_program(vec3(0, 0, 0), vec3(0, 0.5, -1));
-    sun.set_light_in_program(shaders);
+    sun.set_light_in_program(deferred.get_program());
 
     // Point Lights init
     std::vector<std::shared_ptr<PointLight>> lights;
 
     auto light2 = std::make_shared<PointLight>(vec3(0,0,3), vec3(1, 1, 1), 0.4f);
     light2->setup_program();
-    light2->set_light_in_program(shaders);
+    light2->set_light_in_program(deferred.get_program());
     lights.emplace_back(light2);
 
     auto light = std::make_shared<PointLight>(vec3(0,0,-1), vec3(1, 1, 1), 0.4f);
     light->setup_program();
-    light->set_light_in_program(shaders);
+    light->set_light_in_program(deferred.get_program());
     lights.emplace_back(light);
 
     // Material setting
-    vec3 diffuse1 = vec3(1,0,0); //Red
-    vec3 diffuse2 = vec3(0,1,1); //Cyan
-    vec3 diffuse3 = vec3(0.4,0.4,0.4); //Green
-    vec3 spec = vec3(0.7, 0.7, 0.7); // rubber
-    vec3 spec2 = vec3(0.1, 1.0, 0.7);
-    float shininess = 0.25f;
+    auto mat1 = std::make_shared<Normal_Material>(vec3(1,0,0), vec3(0.7,0.7,0.7), 0.25);
+    auto mat2 = std::make_shared<Normal_Material>(vec3(0,1,1), vec3(0.7,0.7,0.7), 0.25);
+    auto mat3 = std::make_shared<Normal_Material>(vec3(0.4,0.4,0.4), vec3(0.7,0.7,0.7), 0.25);
+    auto tex = std::make_shared<Textured_Material>("textures/metal/");
 
     /************************   MODEL INIT   ***********************************/
     std::vector<std::shared_ptr<Model>> models;
@@ -147,50 +147,50 @@ int main(int argc, char *argv[])
     model = scale(model, vec3(0.6, 0.6, 0.6));
     auto rad_off = 0.2f;
 
-    auto teapot = std::make_shared<Model>("models/teapot_stanford.obj", model, diffuse1, spec, shininess);
+    auto teapot = std::make_shared<Model>("models/teapot_stanford.obj", model, mat1);
     models.emplace_back(teapot);
 
     model = mat4(1.0);
     model = translate(model, vec3(-2, -2, 2));
-    auto cube = std::make_shared<Model>("models/smooth_sphere.obj", model, diffuse2, spec2, shininess);
+    auto cube = std::make_shared<Model>("models/smooth_sphere.obj", model, mat2);
     models.emplace_back(cube);
 
     model = mat4(1.0);
 
     auto model_trans = translate(model, vec3(0, -5, 0));
     auto model_scale = scale(model_trans, vec3(5, 5, 5));
-    auto plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
+    auto plane = std::make_shared<Model>("models/wall.obj", model_scale, mat3);
     models.emplace_back(plane);
 
     model_trans = translate(model, vec3(0, 0, 5));
     auto model_rotate = rotate(model_trans, radians(-90.f), vec3(1, 0, 0));
     model_scale = scale(model_rotate, vec3(5, 5, 5));
-    plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
+    plane = std::make_shared<Model>("models/wall.obj", model_scale, tex);
     models.emplace_back(plane);
 
-    model_trans = translate(model, vec3(0, 0, -5));
+    model_trans = translate(model, vec3(0, -5, -5));
     model_rotate = rotate(model_trans, radians(90.f), vec3(1, 0, 0));
     model_scale = scale(model_rotate, vec3(5, 5, 5));
-    plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
+    plane = std::make_shared<Model>("models/wall.obj", model_scale, mat3);
     models.emplace_back(plane);
 
     model_trans = translate(model, vec3(-5, 0, 0));
     model_rotate = rotate(model_trans, radians(-90.f), vec3(0, 0, 1));
     model_scale = scale(model_rotate, vec3(5, 5, 5));
-    plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
+    plane = std::make_shared<Model>("models/wall.obj", model_scale, tex);
     models.emplace_back(plane);
 
     model_trans = translate(model, vec3(5, 0, 0));
     model_rotate = rotate(model_trans, radians(90.f), vec3(0, 0, 1));
     model_scale = scale(model_rotate, vec3(5, 5, 5));
-    plane = std::make_shared<Model>("models/wall.obj", model_scale, diffuse3, spec, shininess);
+    plane = std::make_shared<Model>("models/wall.obj", model_scale, mat3);
     models.emplace_back(plane);
     /***************************************************************************/
 
     // Init water surface
     model_trans = translate(model, vec3(0, -1, 0));
     model_scale = scale(model_trans, vec3(5, 5, 5));
-    auto water_surface = Model("models/wall.obj", model_scale, diffuse3, spec, shininess);
+    auto water_surface = Model("models/wall.obj", model_scale, mat2);
     Water water = Water(width, height, water_surface, -1);
     water.setup_program(sun, lights);
 
@@ -201,9 +201,6 @@ int main(int argc, char *argv[])
     // Mouse event setup
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     double xpos, ypos;
-    double new_xpos, new_ypos;
-    float mouse_x, mouse_y;
-    glfwGetCursorPos(window, &xpos, &ypos);
 
     // Render loop
     while(!glfwWindowShouldClose(window))
@@ -217,20 +214,15 @@ int main(int argc, char *argv[])
         frame_rate(time);
 
         // Get mouse event (position variations)
-        glfwGetCursorPos(window, &new_xpos, &new_ypos);
+        glfwGetCursorPos(window, &xpos, &ypos);
 
         // Update camera position
-        cam.update(window, (float)delta, new_xpos, new_ypos);
+        cam.update(window, (float)delta, xpos, ypos);
 
         // Update camera view and projection matrices
-        shaders.use();
         mat4 view = cam.look_at();
-        shaders.addUniformVec3(cam.get_position(), "cam_pos");
-        shaders.addUniformMat4(view, "view");
-
-        mat4 projection = mat4(1.0);
-        projection = perspective(radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
-        shaders.addUniformMat4(projection, "projection");
+        vec3 cam_pos = cam.get_position();
+        mat4 projection = perspective(radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
 
         // Update model matrices
         rad_off = pause_rotation(window, rad_off);
@@ -244,8 +236,8 @@ int main(int argc, char *argv[])
 
 
         // Deferred shading
-        deferred.update_viewport(view, projection);
-        deferred.render(models);
+        deferred.update_viewport(view, projection, cam_pos);
+        deferred.gbuffer_render(models);
 
         // Shadow computing
         sun.draw_shadow_map(models);
@@ -256,20 +248,22 @@ int main(int argc, char *argv[])
         glViewport(0, 0, width, height);
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        shaders.use();
+        // shaders.use();
 
-        deferred.set_textures(shaders);
+        // deferred.set_textures(shaders);
+        deferred.set_shadow_maps(sun, lights);
+        deferred.render();
 
-        sun.set_shadow_map(shaders);
-        for (auto light : lights)
-            light->set_shadow_cube(shaders);
+        // sun.set_shadow_map(shaders);
+        // for (auto light : lights)
+        //     light->set_shadow_cube(shaders);
+        //
+        //
+        // // Draw objects
+        // for (auto model : models)
+        //     model->draw(shaders);
 
-
-        // Draw objects
-        for (auto model : models)
-            model->draw(shaders);
-
-        water.render(models, cam, fps, deferred.get_depth());
+        water.render(models, cam, fps, deferred);
 
         // Check and call events
         glfwSwapBuffers(window);

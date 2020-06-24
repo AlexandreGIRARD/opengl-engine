@@ -8,10 +8,7 @@ using namespace glm;
 
 void Model::draw(program &p)
 {
-    p.addUniformVec3(_diffuse, "mtl.diffuse");
-    p.addUniformVec3(_specular, "mtl.specular");
-    p.addUniformFloat(_shininess, "mtl.shininess");
-
+    _mat->set_uniforms(p);
     p.addUniformMat4(_model, "model");
     for (auto mesh : _meshes)
         mesh.draw(p);
@@ -20,7 +17,8 @@ void Model::draw(program &p)
 void Model::load_model(std::string path)
 {
     Assimp::Importer importer;
-    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_GenSmoothNormals);
+    const aiScene *scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_FlipUVs
+        | aiProcess_GenSmoothNormals | aiProcess_CalcTangentSpace);
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
     {
         std::cout << "Import model error" << importer.GetErrorString() << "\n";
@@ -55,6 +53,7 @@ Mesh Model::process_mesh(aiMesh *mesh, const aiScene *scene)
         vertex.position = vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
         vertex.normal = vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
         vertex.uv = vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
+        vertex.tangent = vec3(mesh->mTangents[i].x, mesh->mTangents[i].y, mesh->mTangents[i].z);
 
         vertices.emplace_back(vertex);
     }

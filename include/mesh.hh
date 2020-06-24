@@ -16,6 +16,8 @@ struct Vertex
     vec3 position;
     vec3 normal;
     vec2 uv;
+    vec3 tangent;
+    vec3 bitangent;
 };
 
 class Mesh
