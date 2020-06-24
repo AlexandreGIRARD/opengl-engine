@@ -86,7 +86,7 @@ void main()
 
     // Fresnel
     vec3 view_vect = normalize(cam_pos - frag_pos.xyz);
-    float fresnel = pow(dot(view_vect, frag_normal), 1.8);
+    float fresnel = pow(dot(view_vect, frag_normal), 1);
 
     vec4 specular = get_sun_specular(sun, view_vect, frag_normal);
     for (int i = 0; i < NB_PTS_LIGHTS; i++)

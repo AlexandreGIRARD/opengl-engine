@@ -26,10 +26,8 @@ struct deferred_info
     vec3 pos;
     vec3 spec;
     float shininess;
+    uint id;
 };
-
-in vec4 shadow_uv;
-in vec3 vect;
 
 uniform vec3 cam_pos;
 uniform point_light lights[NB_PTS_LIGHTS];
@@ -39,6 +37,14 @@ uniform sampler2D def_color;
 uniform sampler2D def_normal;
 uniform sampler2D def_position;
 uniform sampler2D def_specular;
+
+uniform mat4 sun_view;
+uniform mat4 sun_projection;
+
+const mat4 bias_matrix = mat4(vec4(0.5, 0.0, 0.0, 0.0),
+                              vec4(0.0, 0.5, 0.0, 0.0),
+                              vec4(0.0, 0.0, 0.5, 0.0),
+                              vec4(0.5, 0.5, 0.5, 1.0));
 
 out vec4 color;
 
@@ -61,28 +67,28 @@ float point_shadow_coef(point_light light, vec3 pos, vec3 light_vect)
 /*
  * Compute shadow coef for the sunlight with uv_coord and shadow_map with pcf3
 */
-float sun_shadow_coef(vec2 uv_coord, sampler2D shadow_map, int filter_size)
+float sun_shadow_coef(vec4 shadow_uv, sampler2D shadow_map, int filter_size)
 {
     float total = 0;
     vec2 size = 1.0 / textureSize(shadow_map, 0);
     for (float y = -filter_size; y <= filter_size; y+=1.5) {
        for (float x = -filter_size; x <= filter_size; x+=1.5) {
-           float tmp = texture(shadow_map, uv_coord.xy + vec2(x, y) * size).r;
+           float tmp = texture(shadow_map, shadow_uv.xy + vec2(x, y) * size).r;
            total += shadow_uv.z - BIAS > tmp ? 1.0 : 0.0;
        }
     }
     total /= (filter_size * 2.0 + 1.0) * (filter_size * 2.0 + 1.0);
 
-    return 1.0 - (total * shadow_uv.w);
+    return max(1.0 - (total * shadow_uv.w), 0.5);
 }
 
 /*
  * Compute lighting for the sun light or scene global light
 */
-vec3 get_sun_light(sun_light light, deferred_info infos, vec3 view_vect, vec2 uv)
+vec3 get_sun_light(sun_light light, deferred_info infos, vec3 view_vect, vec4 shadow_uv)
 {
 
-    float shadow = sun_shadow_coef(uv, light.map, 3);
+    float shadow = sun_shadow_coef(shadow_uv, light.map, 3);
     // shadow = 1.0;
     vec3 ambient = 0.1 * infos.color;
 
@@ -122,6 +128,7 @@ vec3 get_light(point_light light, deferred_info infos, vec3 view_vect)
 
 void main()
 {
+
     // Get deferred informations
     vec2 norm_coord = gl_FragCoord.xy / vec2(1920, 1080);
     deferred_info infos;
@@ -130,10 +137,16 @@ void main()
     infos.pos = texture(def_position, norm_coord).xyz;
     infos.spec = texture(def_specular, norm_coord).xyz;
     infos.shininess = texture(def_normal, norm_coord)[3];
+    infos.id = uint(texture(def_position, norm_coord).w);
+
+    // Shadow uv computation for sun shadow
+
+    mat4 light_matrix = sun_projection * sun_view;
+    vec4 shadow_uv = bias_matrix*light_matrix * vec4(infos.pos, 1.0);
 
     vec3 view_vect = normalize(cam_pos - infos.pos);
 
-    vec3 final_color = get_sun_light(sun, infos, view_vect, shadow_uv.xy);
+    vec3 final_color = get_sun_light(sun, infos, view_vect, shadow_uv);
     for (int i = 0; i < NB_PTS_LIGHTS; i++)
         final_color += get_light(lights[i], infos, view_vect);
 

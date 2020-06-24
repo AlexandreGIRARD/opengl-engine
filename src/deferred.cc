@@ -53,7 +53,7 @@ Deferred::Deferred(int width, int height)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 
-    // FBO for the light
+    // FBO for the g-buffer
     glGenFramebuffers(1, &_FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _colors, 0);
@@ -68,13 +68,41 @@ Deferred::Deferred(int width, int height)
         exit(-1);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    // output texture
+    glGenTextures(1, &_output);
+    glBindTexture(GL_TEXTURE_2D, _output);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    //FBO for final output
+    glGenFramebuffers(1, &_final_FBO);
+    glBindFramebuffer(GL_FRAMEBUFFER, _final_FBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _output, 0);
+
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        exit(-1);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
     _program = program();
     _program.add_shader("deferred_vertex.glsl", GL_VERTEX_SHADER);
     _program.add_shader("deferred_fragment.glsl", GL_FRAGMENT_SHADER);
     _program.link();
+
+    _final = program();
+    _final.add_shader("vertex.glsl", GL_VERTEX_SHADER);
+    _final.add_shader("fragment.glsl", GL_FRAGMENT_SHADER);
+    _final.link();
+
+    set_screen_quad();
 }
 
-void Deferred::render(std::vector<std::shared_ptr<Model>> models)
+void Deferred::gbuffer_render(std::vector<std::shared_ptr<Model>> models)
 {
     _program.use();
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
@@ -87,11 +115,65 @@ void Deferred::render(std::vector<std::shared_ptr<Model>> models)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Deferred::update_viewport(mat4 &view, mat4 &projection)
+void Deferred::render()
+{
+    _final.use();
+    set_textures(_final);
+    glBindFramebuffer(GL_FRAMEBUFFER, _final_FBO);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    render_screen_quad();
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Output texture to backbuffer with depth test
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, _final_FBO);
+    glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, _FBO);
+    glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Deferred::set_screen_quad()
+{
+    float quad[] = {
+        -1.f, -1.f, 0.f, 0.f, 0.f,
+        -1.f,  1.f, 0.f, 0.f, 1.f,
+         1.f, -1.f, 0.f, 1.f, 0.f,
+         1.f,  1.f, 0.f, 1.f, 1.f
+    };
+    glGenVertexArrays(1, &_quad_VAO);
+    glGenBuffers(1, &_quad_VBO);
+
+    glBindVertexArray(_quad_VAO);
+
+    glBindBuffer(GL_ARRAY_BUFFER, _quad_VBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(quad), &quad, GL_STATIC_DRAW);
+
+    // Positions
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)0);
+
+    // Uvs
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(Vertex), (void*)(3 * sizeof(float)));
+}
+
+void Deferred::render_screen_quad()
+{
+    glBindVertexArray(_quad_VAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+
+void Deferred::update_viewport(mat4 &view, mat4 &projection, vec3 &position)
 {
     _program.use();
     _program.addUniformMat4(view, "view");
     _program.addUniformMat4(projection, "projection");
+    _final.use();
+    _final.addUniformVec3(position, "cam_pos");
 }
 
 void Deferred::set_textures(program &p)
@@ -116,4 +198,22 @@ void Deferred::set_textures(program &p)
 uint Deferred::get_depth()
 {
     return _depth;
+}
+
+program Deferred::get_program()
+{
+    return _final;
+}
+
+uint Deferred::get_output()
+{
+    return _output;
+}
+
+void Deferred::set_shadow_maps(DirectionalLight &sun, std::vector<std::shared_ptr<PointLight>> lights)
+{
+    _final.use();
+    sun.set_shadow_map(_final);
+    for (auto light : lights)
+        light->set_shadow_cube(_final);
 }

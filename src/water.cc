@@ -96,7 +96,7 @@ void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> 
         light->set_light_in_program(_water);
 }
 
-void Water::render(std::vector<shared_model> models, Camera cam, float fps, uint depth)
+void Water::render(std::vector<shared_model> models, Camera cam, float fps, Deferred &def)
 {
     _water.use();
     mat4 view = cam.look_at();
@@ -145,12 +145,13 @@ void Water::render(std::vector<shared_model> models, Camera cam, float fps, uint
     //Bind refraction texture
     _water.addUniformTexture(3, "refraction_tex");
     glActiveTexture(GL_TEXTURE0+3);
-    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, _width, _height, 0);
+    glBindTexture(GL_TEXTURE_2D, def.get_output());
+    // glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, _width, _height, 0);
 
     // Depth texture
     _water.addUniformTexture(4, "depth_tex");
     glActiveTexture(GL_TEXTURE0+4);
-    glBindTexture(GL_TEXTURE_2D, depth);
+    glBindTexture(GL_TEXTURE_2D, def.get_depth());
 
 
     _water_surface.draw(_water);
