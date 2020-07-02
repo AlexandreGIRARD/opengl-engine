@@ -9,9 +9,10 @@ layout (location = 4) in vec3 bitangent;
 uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
+uniform vec4 clip_plane;
 
 out VS_OUT {
-    vec3 pos;
+    vec4 pos;
     vec3 normal;
     vec2 uv;
     mat3 TBN;
@@ -19,7 +20,7 @@ out VS_OUT {
 
 void main()
 {
-    vs_out.pos = vec3(model * vec4(pos, 1.0));
+    vs_out.pos = model * vec4(pos, 1.0);
     vs_out.normal = normalize(mat3(transpose(inverse(model))) * normal);
     vs_out.uv = uv;
     vec3 T = normalize(vec3(model * vec4(tangent, 0.0)));
@@ -28,5 +29,6 @@ void main()
     vec3 B = cross(N, T);
     vs_out.TBN = mat3(T, B, N);
 
+    gl_ClipDistance[0] = dot(model * vec4(pos, 1.0), clip_plane);
     gl_Position = projection * view * model * vec4(pos, 1.0);
 }

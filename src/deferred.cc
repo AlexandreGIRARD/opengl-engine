@@ -5,7 +5,7 @@ static uint buffer[4] = {GL_COLOR_ATTACHMENT0,
                          GL_COLOR_ATTACHMENT2,
                          GL_COLOR_ATTACHMENT3};
 
-Deferred::Deferred(int width, int height)
+Deferred::Deferred(int width, int height, bool width_shadow)
 {
     // Color texture
     glGenTextures(1, &_colors);
@@ -88,15 +88,24 @@ Deferred::Deferred(int width, int height)
         exit(-1);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
+    mat4 projection = perspective(radians(60.0f), (float)width / (float)height, 0.01f, 50.0f);
 
     _program = program();
     _program.add_shader("deferred_vertex.glsl", GL_VERTEX_SHADER);
     _program.add_shader("deferred_fragment.glsl", GL_FRAGMENT_SHADER);
     _program.link();
+    _program.use();
+    _program.addUniformMat4(projection, "projection");
 
     _final = program();
-    _final.add_shader("vertex.glsl", GL_VERTEX_SHADER);
-    _final.add_shader("fragment.glsl", GL_FRAGMENT_SHADER);
+    if (width_shadow) {
+        _final.add_shader("vertex.glsl", GL_VERTEX_SHADER);
+        _final.add_shader("fragment.glsl", GL_FRAGMENT_SHADER);
+    }
+    else {
+        _final.add_shader("shadowless_vertex.glsl", GL_VERTEX_SHADER);
+        _final.add_shader("shadowless_fragment.glsl", GL_FRAGMENT_SHADER);
+    }
     _final.link();
 
     set_screen_quad();
@@ -124,7 +133,10 @@ void Deferred::render()
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     render_screen_quad();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
+void Deferred::bind_fbo_to_backbuffer()
+{
     // Output texture to backbuffer with depth test
     glBindFramebuffer(GL_READ_FRAMEBUFFER, _final_FBO);
     glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_COLOR_BUFFER_BIT, GL_LINEAR);
@@ -167,11 +179,10 @@ void Deferred::render_screen_quad()
     glBindVertexArray(0);
 }
 
-void Deferred::update_viewport(mat4 &view, mat4 &projection, vec3 &position)
+void Deferred::update_viewport(mat4 &view, vec3 &position)
 {
     _program.use();
     _program.addUniformMat4(view, "view");
-    _program.addUniformMat4(projection, "projection");
     _final.use();
     _final.addUniformVec3(position, "cam_pos");
 }
@@ -195,14 +206,24 @@ void Deferred::set_textures(program &p)
     glBindTexture(GL_TEXTURE_2D, _specular);
 }
 
+uint Deferred::get_pos()
+{
+    return _position;
+}
+
 uint Deferred::get_depth()
 {
     return _depth;
 }
 
-program Deferred::get_program()
+program Deferred::get_final()
 {
     return _final;
+}
+
+program Deferred::get_program()
+{
+    return _program;
 }
 
 uint Deferred::get_output()

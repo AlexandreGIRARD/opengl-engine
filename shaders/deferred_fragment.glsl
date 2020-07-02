@@ -15,7 +15,7 @@ struct textures
 };
 
 in VS_OUT {
-    vec3 pos;
+    vec4 pos;
     vec3 normal;
     vec2 uv;
     mat3 TBN;
@@ -53,6 +53,6 @@ void main()
         texture_component();
     else
         normal_component();
-    position = vec4(fs_in.pos, 1.0);
+    position = fs_in.pos;
 
 }

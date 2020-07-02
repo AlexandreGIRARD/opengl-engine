@@ -113,24 +113,24 @@ int main(int argc, char *argv[])
     shaders.addUniformMat4(projection, "projection");
 
     // Add view projetcion to deferred shaders
-    Deferred deferred = Deferred(width, height);
+    Deferred deferred = Deferred(width, height, true);
 
     // Sun Light init
     DirectionalLight sun = DirectionalLight(vec3(0, 0.5, -1), vec3(1, 1, 1), 1.f);
     sun.setup_program(vec3(0, 0, 0), vec3(0, 0.5, -1));
-    sun.set_light_in_program(deferred.get_program());
+    sun.set_light_in_program(deferred.get_final());
 
     // Point Lights init
     std::vector<std::shared_ptr<PointLight>> lights;
 
     auto light2 = std::make_shared<PointLight>(vec3(0,0,3), vec3(1, 1, 1), 0.4f);
     light2->setup_program();
-    light2->set_light_in_program(deferred.get_program());
+    light2->set_light_in_program(deferred.get_final());
     lights.emplace_back(light2);
 
     auto light = std::make_shared<PointLight>(vec3(0,0,-1), vec3(1, 1, 1), 0.4f);
     light->setup_program();
-    light->set_light_in_program(deferred.get_program());
+    light->set_light_in_program(deferred.get_final());
     lights.emplace_back(light);
 
     // Material setting
@@ -222,7 +222,6 @@ int main(int argc, char *argv[])
         // Update camera view and projection matrices
         mat4 view = cam.look_at();
         vec3 cam_pos = cam.get_position();
-        mat4 projection = perspective(radians(60.0f), (float)width / (float)height, 0.1f, 100.0f);
 
         // Update model matrices
         rad_off = pause_rotation(window, rad_off);
@@ -231,12 +230,12 @@ int main(int argc, char *argv[])
         teapot->set_model(teapot_model);
 
         auto cube_model = cube->get_model();
-        cube_model = rotate(cube_model, radians(-rad_off), vec3(1.0, 0.0, 0.0));
+        // cube_model = rotate(cube_model, radians(-rad_off), vec3(1.0, 0.0, 0.0));
         cube->set_model(cube_model);
 
 
         // Deferred shading
-        deferred.update_viewport(view, projection, cam_pos);
+        deferred.update_viewport(view, cam_pos);
         deferred.gbuffer_render(models);
 
         // Shadow computing
@@ -253,6 +252,7 @@ int main(int argc, char *argv[])
         // deferred.set_textures(shaders);
         deferred.set_shadow_maps(sun, lights);
         deferred.render();
+        deferred.bind_fbo_to_backbuffer();
 
         // sun.set_shadow_map(shaders);
         // for (auto light : lights)

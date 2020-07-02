@@ -10,17 +10,24 @@
 class Deferred
 {
 public:
-    Deferred(int width, int height);
-    void update_viewport(mat4 &view, mat4 &projection, vec3 &position);
+    Deferred(int width, int height, bool with_shadow);
+    void update_viewport(mat4 &view, vec3 &position);
     void gbuffer_render(std::vector<std::shared_ptr<Model>> models);
+
     void render();
-    void set_textures(program &p);
-    uint get_depth();
-    program get_program();
-    uint get_output();
-    void set_shadow_maps(DirectionalLight &sun, std::vector<std::shared_ptr<PointLight>> lights);
-    void set_screen_quad();
     void render_screen_quad();
+
+    void bind_fbo_to_backbuffer();
+
+    uint get_pos();
+    uint get_depth();
+    uint get_output();
+    program get_final();
+    program get_program();
+
+    void set_textures(program &p);
+    void set_screen_quad();
+    void set_shadow_maps(DirectionalLight &sun, std::vector<std::shared_ptr<PointLight>> lights);
 
 private:
     program _program;
@@ -36,6 +43,7 @@ private:
     uint _normals;
     uint _specular;
     uint _position;
+    uint _shadow;
     uint _depth;
     uint _output;
 };

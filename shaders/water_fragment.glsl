@@ -71,7 +71,7 @@ void main()
     // Distortion for texture coordinates
     vec2 distorded_coord = texture(dudv_map, frag_uv + vec2(move_offset, 0)).rg;
     distorded_coord = frag_uv + vec2(distorded_coord.x, distorded_coord.y + move_offset*2);
-    vec2 dudv = (texture(dudv_map, distorded_coord).rg * 2.0 - 1.0) * 0.03 * depth;
+    vec2 dudv = (texture(dudv_map, distorded_coord).rg * 2.0 - 1.0) * 0.01 * depth;
     vec3 normal = texture(normal_map, distorded_coord).xyz;
     normal = vec3(normal.x * 2.0 - 1.0, normal.y, normal.z * 2.0 - 1.0);
 
@@ -86,13 +86,14 @@ void main()
 
     // Fresnel
     vec3 view_vect = normalize(cam_pos - frag_pos.xyz);
-    float fresnel = pow(dot(view_vect, frag_normal), 1);
+    float fresnel = pow(dot(view_vect, frag_normal), 1.6);
 
     vec4 specular = get_sun_specular(sun, view_vect, frag_normal);
     for (int i = 0; i < NB_PTS_LIGHTS; i++)
         specular += get_point_specular(lights[i], view_vect, frag_normal);
 
+    refract = mix(refract, vec4(0, 0.2, 0.6, 0.4), 0.4);
     color = mix(reflect, refract, fresnel);
-    color = mix(color, vec4 (0., 0.1, 0.4, 0.8), depth) + specular;
     color.a = clamp(depth / 5.0, 0, 1);
+    // color = vec4(depth);
 }

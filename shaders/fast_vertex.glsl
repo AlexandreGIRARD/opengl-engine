@@ -17,6 +17,5 @@ void main ()
 
     frag_pos = vec3(model * vec4(pos, 1.0));
     frag_normal = normalize(mat3(transpose(inverse(model))) * normal);
-    gl_ClipDistance[0] = dot(model * vec4(pos, 1.0), clip_plane);
     gl_Position = projection * view * model * vec4(pos, 1.0);
 }

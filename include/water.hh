@@ -19,6 +19,7 @@ public:
 
 private:
     Model _water_surface;
+    Deferred _deferred_sky;
     program _water;
     program _sky;
     program _ground;
