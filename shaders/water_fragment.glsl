@@ -16,9 +16,12 @@ struct sun_light
     float intensity;
 };
 
-in vec4 frag_pos;
-in vec3 frag_normal;
-in vec2 frag_uv;
+in VS_OUT {
+  vec4 pos;
+  vec3 normal;
+  vec2 uv;
+  mat3 TBN;
+} fs_in;
 
 uniform float move_offset;
 uniform vec3 cam_pos;
@@ -44,7 +47,7 @@ vec4 get_sun_specular(sun_light light, vec3 view_vect, vec3 normal)
 
 vec4 get_point_specular(point_light light, vec3 view_vect, vec3 normal)
 {
-    vec3 light_vect = normalize(light.pos - vec3(frag_pos));
+    vec3 light_vect = normalize(light.pos - vec3(fs_in.pos));
     vec3 half_vect = normalize(light_vect + view_vect);
     float spec_coef = pow(max(dot(normal, half_vect), 0), 8);
     return vec4(0.4) * spec_coef;
@@ -69,11 +72,11 @@ void main()
     float depth = get_water_depth(refract_coord);
 
     // Distortion for texture coordinates
-    vec2 distorded_coord = texture(dudv_map, frag_uv + vec2(move_offset, 0)).rg;
-    distorded_coord = frag_uv + vec2(distorded_coord.x, distorded_coord.y + move_offset*2);
-    vec2 dudv = (texture(dudv_map, distorded_coord).rg * 2.0 - 1.0) * 0.01 * depth;
-    vec3 normal = texture(normal_map, distorded_coord).xyz;
-    normal = vec3(normal.x * 2.0 - 1.0, normal.y, normal.z * 2.0 - 1.0);
+    vec2 distorded_coord = texture(dudv_map, fs_in.uv + vec2(move_offset, 0)).rg;
+    distorded_coord = fs_in.uv + vec2(distorded_coord.x, distorded_coord.y + move_offset*0.5);
+    vec2 dudv = (texture(dudv_map, distorded_coord).rg * 2.0 - 1.0) * 0.005 * depth;
+    vec3 normal = texture(normal_map, distorded_coord).rgb * 2.0 - 1.0;
+    normal = normalize(fs_in.TBN * normal);
 
     // Move coordinates
     refract_coord += dudv;
@@ -85,15 +88,15 @@ void main()
     vec4 refract = texture(refraction_tex, refract_coord);
 
     // Fresnel
-    vec3 view_vect = normalize(cam_pos - frag_pos.xyz);
-    float fresnel = pow(dot(view_vect, frag_normal), 1.6);
+    vec3 view_vect = normalize(cam_pos - fs_in.pos.xyz);
+    float fresnel = pow(dot(view_vect, fs_in.normal), 1.6);
 
-    vec4 specular = get_sun_specular(sun, view_vect, frag_normal);
+    vec4 specular = get_sun_specular(sun, view_vect, normal);
     for (int i = 0; i < NB_PTS_LIGHTS; i++)
-        specular += get_point_specular(lights[i], view_vect, frag_normal);
+        specular += get_point_specular(lights[i], view_vect, normal);
 
     refract = mix(refract, vec4(0, 0.2, 0.6, 0.4), 0.4);
-    color = mix(reflect, refract, fresnel);
+    color = mix(reflect, refract, fresnel) + specular * 0.5;
     color.a = clamp(depth / 5.0, 0, 1);
     // color = vec4(depth);
 }

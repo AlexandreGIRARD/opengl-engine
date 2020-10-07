@@ -183,7 +183,7 @@ int main(int argc, char *argv[])
     model_trans = translate(model, vec3(5, 0, 0));
     model_rotate = rotate(model_trans, radians(90.f), vec3(0, 0, 1));
     model_scale = scale(model_rotate, vec3(5, 5, 5));
-    plane = std::make_shared<Model>("models/wall.obj", model_scale, mat3);
+    plane = std::make_shared<Model>("models/wall.obj", model_scale, tex);
     models.emplace_back(plane);
     /***************************************************************************/
 

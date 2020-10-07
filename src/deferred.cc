@@ -183,6 +183,7 @@ void Deferred::update_viewport(mat4 &view, vec3 &position)
 {
     _program.use();
     _program.addUniformMat4(view, "view");
+    _program.addUniformVec3(position, "cam_pos");
     _final.use();
     _final.addUniformVec3(position, "cam_pos");
 }
