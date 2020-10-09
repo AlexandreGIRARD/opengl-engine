@@ -12,11 +12,11 @@ It is implemented using OpenGL 4.3 and C++.
 ## Build
 ```sh
 # Build
-make -j
+./build.sh
 ```
 ```sh
 # Run
-./main
+./engine
 ```
 
 ## Libraries
