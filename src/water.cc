@@ -63,15 +63,44 @@ Water::Water(int width, int height, Model &water_surface, float y)
 
     // Create program for rendering reflection texture
     _sky = program();
-    _sky.add_shader("fast_vertex.glsl", GL_VERTEX_SHADER);
-    _sky.add_shader("fast_fragment.glsl", GL_FRAGMENT_SHADER);
+    _sky.add_shader("water/reflection.vs.glsl", GL_VERTEX_SHADER);
+    _sky.add_shader("water/reflection.fs.glsl", GL_FRAGMENT_SHADER);
     _sky.link();
 
-    // Create main water program
+    // Create above water program
     _water = program();
-    _water.add_shader("water_vertex.glsl", GL_VERTEX_SHADER);
-    _water.add_shader("water_fragment.glsl", GL_FRAGMENT_SHADER);
+    _water.add_shader("water/water.vs.glsl", GL_VERTEX_SHADER);
+    _water.add_shader("water/water.fs.glsl", GL_FRAGMENT_SHADER);
     _water.link();
+
+    // Create under water program
+    _sub = program();
+    _sub.add_shader("water/underwater.vs.glsl", GL_VERTEX_SHADER);
+    _sub.add_shader("water/underwater.fs.glsl", GL_FRAGMENT_SHADER);
+    _sub.link();
+
+    // Create Water fog program
+    _fog = program();
+    _fog.add_shader("water/fog.vs.glsl", GL_VERTEX_SHADER);
+    _fog.add_shader("water/fog.fs.glsl", GL_FRAGMENT_SHADER);
+    _fog.link();
+
+    // Fog depth texture
+    glGenTextures(1, &_fog_depth);
+    glBindTexture(GL_TEXTURE_2D, _fog_depth);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glGenTextures(1, &_backbuffer_color);
+    glBindTexture(GL_TEXTURE_2D, _backbuffer_color);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     // Load textures
     _dudv = load_texture("textures/water/dudv.jpg");
@@ -95,9 +124,68 @@ void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> 
     sun_light.set_light_in_program(_water);
     for (auto light : lights)
         light->set_light_in_program(_water);
+
+    // Under Water program init uniform
+    _sub.use();
+    _sub.addUniformMat4(projection, "projection");
+    sun_light.set_light_in_program(_sub);
+    for (auto light : lights)
+        light->set_light_in_program(_sub);
 }
 
 void Water::render(std::vector<shared_model> models, Camera cam, float fps, Deferred &def)
+{
+    _move_offset += _wave_speed;
+    // _move_offset = _move_offset >= 1.f ? 0.f : _move_offset;
+    if (cam.get_position().y >= -1) // TODO use water_surface.y and below surface
+        render_abv_surface(models, cam, fps, def);
+    else
+        render_sub_surface(cam, fps, def);
+}
+
+void Water::render_sub_surface(Camera cam, float fps, Deferred &def)
+{
+    // Render sub water surface
+    _sub.use();
+    mat4 view = cam.look_at();
+    vec3 pos = cam.get_position();
+    _sub.addUniformMat4(view, "view");
+    _sub.addUniformVec3(pos, "cam_pos");
+    _sub.addUniformFloat(_move_offset, "move_offset");
+    _sub.addUniformTexture(0, "dudv_map");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _dudv);
+    _sub.addUniformTexture(1, "normal_map");
+    glActiveTexture(GL_TEXTURE0+1);
+    glBindTexture(GL_TEXTURE_2D, _normal_map);
+
+    //Bind refraction texture
+    _sub.addUniformTexture(2, "refraction_tex");
+    glActiveTexture(GL_TEXTURE0+2);
+    glBindTexture(GL_TEXTURE_2D, def.get_output());
+
+    _water_surface.draw(_sub);
+
+
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindTexture(GL_TEXTURE_2D, _backbuffer_color);
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 0, 0, 1920, 1080, 0);
+    glBindTexture(GL_TEXTURE_2D, _fog_depth);
+    glCopyTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 0, 0, 1920, 1080, 0);
+
+    // render water fog using depth buffer fromn backbuffer
+    _fog.use();
+    _fog.addUniformTexture(0, "depth_tex");
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _fog_depth);
+    _fog.addUniformTexture(1, "color_tex");
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, _backbuffer_color);
+    def.render_screen_quad();
+
+}
+
+void Water::render_abv_surface(std::vector<shared_model> models, Camera cam, float fps, Deferred &def)
 {
     _water.use();
     mat4 view = cam.look_at();
@@ -123,8 +211,6 @@ void Water::render(std::vector<shared_model> models, Camera cam, float fps, Defe
     // Water Rendering
     glDisable(GL_CLIP_DISTANCE0);
     _water.use();
-    _move_offset += _wave_speed;
-    // _move_offset = _move_offset >= 1.f ? 0.f : _move_offset;
     _water.addUniformFloat(_move_offset, "move_offset");
     _water.addUniformTexture(0, "dudv_map");
     glActiveTexture(GL_TEXTURE0);
@@ -148,11 +234,6 @@ void Water::render(std::vector<shared_model> models, Camera cam, float fps, Defe
     _water.addUniformTexture(4, "depth_tex");
     glActiveTexture(GL_TEXTURE0+4);
     glBindTexture(GL_TEXTURE_2D, def.get_depth());
-
-    // Pos texture
-    _water.addUniformTexture(5, "pos_tex");
-    glActiveTexture(GL_TEXTURE0+5);
-    glBindTexture(GL_TEXTURE_2D, def.get_pos());
 
     _water_surface.draw(_water);
 }

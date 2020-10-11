@@ -91,20 +91,20 @@ Deferred::Deferred(int width, int height, bool width_shadow)
     mat4 projection = perspective(radians(60.0f), (float)width / (float)height, 0.01f, 50.0f);
 
     _program = program();
-    _program.add_shader("deferred_vertex.glsl", GL_VERTEX_SHADER);
-    _program.add_shader("deferred_fragment.glsl", GL_FRAGMENT_SHADER);
+    _program.add_shader("deferred/deferred.vs.glsl", GL_VERTEX_SHADER);
+    _program.add_shader("deferred/deferred.fs.glsl", GL_FRAGMENT_SHADER);
     _program.link();
     _program.use();
     _program.addUniformMat4(projection, "projection");
 
     _final = program();
     if (width_shadow) {
-        _final.add_shader("vertex.glsl", GL_VERTEX_SHADER);
-        _final.add_shader("fragment.glsl", GL_FRAGMENT_SHADER);
+        _final.add_shader("main.vs.glsl", GL_VERTEX_SHADER);
+        _final.add_shader("main.fs.glsl", GL_FRAGMENT_SHADER);
     }
     else {
-        _final.add_shader("shadowless_vertex.glsl", GL_VERTEX_SHADER);
-        _final.add_shader("shadowless_fragment.glsl", GL_FRAGMENT_SHADER);
+        _final.add_shader("shadowless_main.vs.glsl", GL_VERTEX_SHADER);
+        _final.add_shader("shadowless_main.fs.glsl", GL_FRAGMENT_SHADER);
     }
     _final.link();
 
@@ -169,7 +169,7 @@ void Deferred::set_screen_quad()
 
     // Uvs
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(Vertex), (void*)(3 * sizeof(float)));
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5*sizeof(float), (void*)(3 * sizeof(float)));
 }
 
 void Deferred::render_screen_quad()

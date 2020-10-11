@@ -25,7 +25,6 @@ void main()
     vs_out.uv = uv;
 
     vec3 T = normalize(vec3(model * vec4(tangent, 0.0)));
-    // vec3 B = normalize(vec3(model * vec4(bitangent, 0.0)));
     vec3 N = normalize(vec3(model * vec4(normal, 0.0)));
     T = normalize(T - dot(T, N) * N);
     vec3 B = cross(N, T);

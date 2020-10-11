@@ -62,8 +62,8 @@ void PointLight::set_views()
 void PointLight::setup_program()
 {
     _program = program();
-    _program.add_shader("point_shadow_vertex.glsl", GL_VERTEX_SHADER);
-    _program.add_shader("point_shadow_fragment.glsl", GL_FRAGMENT_SHADER);
+    _program.add_shader("shadows/point_shadow.vs.glsl", GL_VERTEX_SHADER);
+    _program.add_shader("shadows/point_shadow.fs.glsl", GL_FRAGMENT_SHADER);
     _program.link();
     _program.use();
 

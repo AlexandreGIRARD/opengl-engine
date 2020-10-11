@@ -44,21 +44,29 @@ uint DirectionalLight::set_shadow_framebuffer()
     return _FBO;
 }
 
-void DirectionalLight::setup_program(vec3 direction, vec3 space_pos)
+void DirectionalLight::setup_program(vec3 direction, vec3 cam_pos)
 {
     _program = program();
-    _program.add_shader("shadow_vertex.glsl", GL_VERTEX_SHADER);
-    _program.add_shader("shadow_fragment.glsl", GL_FRAGMENT_SHADER);
+    _program.add_shader("shadows/directional_shadow.vs.glsl", GL_VERTEX_SHADER);
+    _program.add_shader("shadows/directional_shadow.fs.glsl", GL_FRAGMENT_SHADER);
     _program.link();
     _program.use();
 
-    Camera shadow_cam = Camera(space_pos, direction, vec3(0, 1, 0));
-    _view = shadow_cam.look_at();
+    _shadow_cam = Camera(cam_pos + vec3(0, 0.5, -1), direction, vec3(0, 1, 0));
+    _view = _shadow_cam.look_at();
     _program.addUniformMat4(_view, "view");
 
     _projection = ortho<float>(-10, 10, -10, 10, -10, 20);
     _program.addUniformMat4(_projection, "projection");
 
+}
+
+void DirectionalLight::update_position(vec3 cam_pos)
+{
+    _program.use();
+    _shadow_cam.set_position(cam_pos + vec3(0, 0.5, 1));
+    _view = _shadow_cam.look_at();
+    _program.addUniformMat4(_view, "view");
 }
 
 void DirectionalLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)

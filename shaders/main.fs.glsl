@@ -1,6 +1,6 @@
 #version 450 core
 
-#define NB_PTS_LIGHTS 2
+#define NB_PTS_LIGHTS 1
 #define BIAS 0.001
 
 struct point_light
@@ -28,6 +28,8 @@ struct deferred_info
     float shininess;
     uint id;
 };
+
+in vec2 frag_uv;
 
 uniform uint shadow;
 uniform vec3 cam_pos;
@@ -131,7 +133,7 @@ void main()
 {
 
     // Get deferred informations
-    vec2 norm_coord = gl_FragCoord.xy / vec2(1920, 1080);
+    vec2 norm_coord = frag_uv;
     deferred_info infos;
     infos.color = texture(def_color, norm_coord).xyz;
     infos.normal = texture(def_normal, norm_coord).xyz;
