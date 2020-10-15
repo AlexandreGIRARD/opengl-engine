@@ -15,6 +15,7 @@
 #include "water.hh"
 #include "normal_material.hh"
 #include "textured_material.hh"
+#include "skybox.hh"
 
 using namespace glm;
 
@@ -93,27 +94,19 @@ int main(int argc, char *argv[])
     // Enable z-buffer computation
     glEnable(GL_DEPTH_TEST);
 
-    // Init main shaders
-    auto shaders = program();
-    shaders.add_shader("vertex.glsl", GL_VERTEX_SHADER);
-    shaders.add_shader("fragment.glsl", GL_FRAGMENT_SHADER);
-    shaders.link();
-
-    // Set shader
-    shaders.use();
 
     // Camera view and projection matrices
-    Camera cam = Camera(vec3(0, 1, -2), vec3(0, 0, 1), vec3(0, 1, 0));
+    Camera cam = Camera(vec3(0, 0, -1), vec3(0, 0, 1), vec3(0, 1, 0));
     mat4 view = cam.look_at();
-    shaders.addUniformVec3(cam.get_position(), "cam_pos");
-    shaders.addUniformMat4(view, "view");
 
     mat4 projection = mat4(1.0);
-    projection = perspective(radians(60.0f), (float)width / (float)height, 0.01f, 50.0f);
-    shaders.addUniformMat4(projection, "projection");
+    projection = perspective(radians(90.0f), (float)width / (float)height, 1.f, 10.0f);
 
     // Add view projetcion to deferred shaders
     Deferred deferred = Deferred(width, height, true);
+
+    // Set Skybox
+    auto skybox = Skybox("textures/skybox/night", projection);
 
     // Sun Light init
     DirectionalLight sun = DirectionalLight(vec3(0, 0.5, -1), vec3(1, 1, 1), 1.f);
@@ -127,11 +120,11 @@ int main(int argc, char *argv[])
     light2->setup_program();
     light2->set_light_in_program(deferred.get_final());
     lights.emplace_back(light2);
-
-    auto light = std::make_shared<PointLight>(vec3(0,0,-1), vec3(1, 1, 1), 0.4f);
-    light->setup_program();
-    light->set_light_in_program(deferred.get_final());
-    lights.emplace_back(light);
+    //
+    // auto light = std::make_shared<PointLight>(vec3(0,0,-1), vec3(1, 1, 1), 0.4f);
+    // light->setup_program();
+    // light->set_light_in_program(deferred.get_final());
+    // lights.emplace_back(light);
 
     // Material setting
     auto mat1 = std::make_shared<Normal_Material>(vec3(1,0,0), vec3(0.7,0.7,0.7), 0.25);
@@ -165,7 +158,7 @@ int main(int argc, char *argv[])
     model_trans = translate(model, vec3(0, 0, 5));
     auto model_rotate = rotate(model_trans, radians(-90.f), vec3(1, 0, 0));
     model_scale = scale(model_rotate, vec3(5, 5, 5));
-    plane = std::make_shared<Model>("models/wall.obj", model_scale, tex);
+    plane = std::make_shared<Model>("models/wall.obj", model_scale, mat3);
     models.emplace_back(plane);
 
     model_trans = translate(model, vec3(0, -5, -5));
@@ -219,6 +212,9 @@ int main(int argc, char *argv[])
         // Update camera position
         cam.update(window, (float)delta, xpos, ypos);
 
+        // Update sun position
+        // sun.update_position(cam.get_position());
+
         // Update camera view and projection matrices
         mat4 view = cam.look_at();
         vec3 cam_pos = cam.get_position();
@@ -247,23 +243,15 @@ int main(int argc, char *argv[])
         glViewport(0, 0, width, height);
         glClearColor(0, 0, 0, 0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        // shaders.use();
 
         // deferred.set_textures(shaders);
         deferred.set_shadow_maps(sun, lights);
         deferred.render();
         deferred.bind_fbo_to_backbuffer();
 
-        // sun.set_shadow_map(shaders);
-        // for (auto light : lights)
-        //     light->set_shadow_cube(shaders);
-        //
-        //
-        // // Draw objects
-        // for (auto model : models)
-        //     model->draw(shaders);
-
+        skybox.display(view);
         water.render(models, cam, fps, deferred);
+
 
         // Check and call events
         glfwSwapBuffers(window);
