@@ -77,10 +77,21 @@ Deferred::Deferred(int width, int height, bool width_shadow)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // depth texture
+    uint depth;
+    glGenTextures(1, &depth);
+    glBindTexture(GL_TEXTURE_2D, depth);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, width, height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
     //FBO for final output
     glGenFramebuffers(1, &_final_FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, _final_FBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _output, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depth, 0);
 
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
 
@@ -129,10 +140,30 @@ void Deferred::render()
     _final.use();
     set_textures(_final);
     glBindFramebuffer(GL_FRAMEBUFFER, _final_FBO);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_DEPTH_TEST);
+    glClear(GL_COLOR_BUFFER_BIT);
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     render_screen_quad();
+    glEnable(GL_DEPTH_TEST);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Deferred::render_skybox(Skybox &skybox, mat4 &view)
+{
+    // Copy depth buffer from _FBO to _final_FBO
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, _FBO);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _final_FBO);
+
+    glBlitFramebuffer(0, 0, 1920, 1080, 0, 0, 1920, 1080, GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+    // Render skybox in _final_FBO
+    glBindFramebuffer(GL_FRAMEBUFFER, _final_FBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depth, 0);
+    skybox.render(view);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
 }
 
 void Deferred::bind_fbo_to_backbuffer()

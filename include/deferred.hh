@@ -6,6 +6,7 @@
 #include "directional_light.hh"
 #include "point_light.hh"
 #include "model.hh"
+#include "skybox.hh"
 
 class Deferred
 {
@@ -16,6 +17,7 @@ public:
 
     void render();
     void render_screen_quad();
+    void render_skybox(Skybox &skybox, mat4 &view);
 
     void bind_fbo_to_backbuffer();
 

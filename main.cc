@@ -106,7 +106,7 @@ int main(int argc, char *argv[])
     Deferred deferred = Deferred(width, height, true);
 
     // Set Skybox
-    auto skybox = Skybox("textures/skybox/night", projection);
+    auto skybox = Skybox("textures/skybox/skybox", projection);
 
     // Sun Light init
     DirectionalLight sun = DirectionalLight(vec3(0, 0.5, -1), vec3(1, 1, 1), 1.f);
@@ -247,10 +247,11 @@ int main(int argc, char *argv[])
         // deferred.set_textures(shaders);
         deferred.set_shadow_maps(sun, lights);
         deferred.render();
+        deferred.render_skybox(skybox, view);
         deferred.bind_fbo_to_backbuffer();
 
-        skybox.display(view);
-        water.render(models, cam, fps, deferred);
+        // skybox.render(view);
+        water.render(models, cam, deferred, skybox);
 
 
         // Check and call events

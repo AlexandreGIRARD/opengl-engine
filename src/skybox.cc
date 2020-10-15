@@ -88,7 +88,7 @@ void Skybox::set_skybox_cube()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3*sizeof(float), (void*)0);
 }
 
-void Skybox::display(mat4 &view)
+void Skybox::render(mat4 &view)
 {
     glDepthFunc(GL_LEQUAL);
     _program.use();

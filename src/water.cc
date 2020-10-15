@@ -133,17 +133,17 @@ void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> 
         light->set_light_in_program(_sub);
 }
 
-void Water::render(std::vector<shared_model> models, Camera cam, float fps, Deferred &def)
+void Water::render(std::vector<shared_model> models, Camera cam, Deferred &def, Skybox &skybox)
 {
     _move_offset += _wave_speed;
     // _move_offset = _move_offset >= 1.f ? 0.f : _move_offset;
     if (cam.get_position().y >= -1) // TODO use water_surface.y and below surface
-        render_abv_surface(models, cam, fps, def);
+        render_abv_surface(models, cam, def, skybox);
     else
-        render_sub_surface(cam, fps, def);
+        render_sub_surface(cam, def);
 }
 
-void Water::render_sub_surface(Camera cam, float fps, Deferred &def)
+void Water::render_sub_surface(Camera cam, Deferred &def)
 {
     // Render sub water surface
     _sub.use();
@@ -185,7 +185,7 @@ void Water::render_sub_surface(Camera cam, float fps, Deferred &def)
 
 }
 
-void Water::render_abv_surface(std::vector<shared_model> models, Camera cam, float fps, Deferred &def)
+void Water::render_abv_surface(std::vector<shared_model> models, Camera cam, Deferred &def, Skybox &skybox)
 {
     _water.use();
     mat4 view = cam.look_at();
@@ -207,6 +207,7 @@ void Water::render_abv_surface(std::vector<shared_model> models, Camera cam, flo
     _deferred_sky.update_viewport(view, pos);
     _deferred_sky.gbuffer_render(models);
     _deferred_sky.render();
+    _deferred_sky.render_skybox(skybox, view);
 
     // Water Rendering
     glDisable(GL_CLIP_DISTANCE0);
