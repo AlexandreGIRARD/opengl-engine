@@ -70,12 +70,16 @@ Water::Water(int width, int height, Model &water_surface, float y)
     // Create above water program
     _water = program();
     _water.add_shader("water/water.vs.glsl", GL_VERTEX_SHADER);
+    _water.add_shader("water/water.tcs.glsl", GL_TESS_CONTROL_SHADER);
+    _water.add_shader("water/water.tes.glsl", GL_TESS_EVALUATION_SHADER);
     _water.add_shader("water/water.fs.glsl", GL_FRAGMENT_SHADER);
     _water.link();
 
     // Create under water program
     _sub = program();
     _sub.add_shader("water/underwater.vs.glsl", GL_VERTEX_SHADER);
+    _sub.add_shader("water/water.tcs.glsl", GL_TESS_CONTROL_SHADER);
+    _sub.add_shader("water/water.tes.glsl", GL_TESS_EVALUATION_SHADER);
     _sub.add_shader("water/underwater.fs.glsl", GL_FRAGMENT_SHADER);
     _sub.link();
 
@@ -164,7 +168,7 @@ void Water::render_sub_surface(Camera cam, Deferred &def)
     glActiveTexture(GL_TEXTURE0+2);
     glBindTexture(GL_TEXTURE_2D, def.get_output());
 
-    _water_surface.draw(_sub);
+    _water_surface.draw_patches(_sub);
 
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -236,5 +240,5 @@ void Water::render_abv_surface(std::vector<shared_model> models, Camera cam, Def
     glActiveTexture(GL_TEXTURE0+4);
     glBindTexture(GL_TEXTURE_2D, def.get_depth());
 
-    _water_surface.draw(_water);
+    _water_surface.draw_patches(_water);
 }

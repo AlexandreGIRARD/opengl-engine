@@ -26,6 +26,7 @@ public:
     Mesh(std::vector<Vertex> &vertices, std::vector<uint> &indices, std::string path);
 
     void draw(program p);
+    void draw_patches(program p);
     uint load_texture(const char *path);
 
     std::vector<uint> _indices;

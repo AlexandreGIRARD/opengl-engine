@@ -55,3 +55,11 @@ void Mesh::draw(program p)
     glDrawElements(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 }
+
+void Mesh::draw_patches(program p)
+{
+    // Draw mesh
+    glBindVertexArray(_VAO);
+    glDrawElements(GL_PATCHES, _indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
+}

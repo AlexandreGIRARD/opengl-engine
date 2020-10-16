@@ -16,10 +16,10 @@ struct sun_light
     float intensity;
 };
 
-in VS_OUT {
+in TES_OUT {
   vec4 pos;
-  vec3 normal;
   vec2 uv;
+  vec3 normal;
   mat3 TBN;
 } fs_in;
 

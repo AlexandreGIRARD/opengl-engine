@@ -33,6 +33,19 @@ void frame_rate(float time)
         fps = 0;
     }
 }
+void GLAPIENTRY
+MessageCallback( GLenum source,
+                 GLenum type,
+                 GLuint id,
+                 GLenum severity,
+                 GLsizei length,
+                 const GLchar* message,
+                 const void* userParam )
+{
+  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
+           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
+            type, severity, message );
+}
 
 void quit_window(GLFWwindow *window)
 {
@@ -87,12 +100,19 @@ int main(int argc, char *argv[])
         exit(-1);
     }
 
+    // Debug
+    glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(MessageCallback, 0);
+
     // Tell OpenGL window size
     glViewport(0, 0, width, height);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     // Enable z-buffer computation
     glEnable(GL_DEPTH_TEST);
+
+    // Patch size = 3
+    glPatchParameteri(GL_PATCH_VERTICES, 3);
 
 
     // Camera view and projection matrices
@@ -210,7 +230,7 @@ int main(int argc, char *argv[])
         glfwGetCursorPos(window, &xpos, &ypos);
 
         // Update camera position
-        cam.update(window, (float)delta, xpos, ypos);
+        cam.update(window, (float)delta*10, xpos, ypos);
 
         // Update sun position
         // sun.update_position(cam.get_position());
@@ -251,8 +271,9 @@ int main(int argc, char *argv[])
         deferred.bind_fbo_to_backbuffer();
 
         // skybox.render(view);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         water.render(models, cam, deferred, skybox);
-
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // Check and call events
         glfwSwapBuffers(window);

@@ -14,6 +14,14 @@ void Model::draw(program &p)
         mesh.draw(p);
 }
 
+void Model::draw_patches(program &p)
+{
+    _mat->set_uniforms(p);
+    p.addUniformMat4(_model, "model");
+    for (auto mesh : _meshes)
+        mesh.draw_patches(p);
+}
+
 void Model::load_model(std::string path)
 {
     Assimp::Importer importer;

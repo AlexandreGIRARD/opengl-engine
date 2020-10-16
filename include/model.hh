@@ -23,6 +23,7 @@ public:
         _mat = mat;
     }
     void draw(program &p);
+    void draw_patches(program &p);
     mat4 get_model();
     void set_model(mat4 &model);
 
