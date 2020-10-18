@@ -1,12 +1,9 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 #include <iostream>
 #include <cmath>
 #include <filesystem>
 #include <memory>
 
-#include "program.hh"
+#include "util.hh"
 #include "camera.hh"
 #include "model.hh"
 #include "directional_light.hh"
@@ -18,69 +15,6 @@
 #include "skybox.hh"
 
 using namespace glm;
-
-float switch_off = 0;
-float fps = 0.f;
-float last_time = 0.f;
-
-void frame_rate(float time)
-{
-    float current_time = time;
-    ++fps;
-    if( current_time - last_time > 1.0f )
-    {
-        last_time = current_time;
-        fps = 0;
-    }
-}
-void GLAPIENTRY
-MessageCallback( GLenum source,
-                 GLenum type,
-                 GLuint id,
-                 GLenum severity,
-                 GLsizei length,
-                 const GLchar* message,
-                 const void* userParam )
-{
-  fprintf( stderr, "GL CALLBACK: %s type = 0x%x, severity = 0x%x, message = %s\n",
-           ( type == GL_DEBUG_TYPE_ERROR ? "** GL ERROR **" : "" ),
-            type, severity, message );
-}
-
-void quit_window(GLFWwindow *window)
-{
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
-
-float pause_rotation(GLFWwindow *window, float rad_off)
-{
-    if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
-    {
-        auto tmp = switch_off;
-        switch_off = rad_off;
-        return tmp;
-    }
-    return rad_off;
-}
-
-void framebuffer_size_callback(GLFWwindow *window, int width, int height)
-{
-    glViewport(0, 0, width, height);
-}
-
-
-GLFWwindow *init_window(uint width, uint height)
-{
-    GLFWwindow *window = glfwCreateWindow(width, height, "ZIZI", NULL, NULL);
-    if (!window)
-    {
-        std::cout << "Failed to create GLFW window" << std::endl;
-        glfwTerminate();
-        exit(-1);
-    }
-    return window;
-}
 
 int main(int argc, char *argv[])
 {
@@ -102,7 +36,7 @@ int main(int argc, char *argv[])
 
     // Debug
     glEnable(GL_DEBUG_OUTPUT);
-    glDebugMessageCallback(MessageCallback, 0);
+    glDebugMessageCallback(debug_callback, 0);
 
     // Tell OpenGL window size
     glViewport(0, 0, width, height);
@@ -116,7 +50,7 @@ int main(int argc, char *argv[])
 
 
     // Camera view and projection matrices
-    Camera cam = Camera(vec3(0, 0, -1), vec3(0, 0, 1), vec3(0, 1, 0));
+    Camera cam = Camera(vec3(0, 0, -5), vec3(1, 0, 0), vec3(0, 1, 0));
     mat4 view = cam.look_at();
 
     mat4 projection = mat4(1.0);
@@ -203,7 +137,7 @@ int main(int argc, char *argv[])
     // Init water surface
     model_trans = translate(model, vec3(0, -1, 0));
     model_scale = scale(model_trans, vec3(5, 5, 5));
-    auto water_surface = Model("models/wall.obj", model_scale, mat2);
+    auto water_surface = Model("models/wave.obj", model_scale, mat2);
     Water water = Water(width, height, water_surface, -1);
     water.setup_program(sun, lights);
 
@@ -224,6 +158,7 @@ int main(int argc, char *argv[])
         // Compute delta time
         delta = glfwGetTime() - time;
         time = glfwGetTime();
+        // std::cout << time << std::endl;
         frame_rate(time);
 
         // Get mouse event (position variations)
@@ -271,9 +206,7 @@ int main(int argc, char *argv[])
         deferred.bind_fbo_to_backbuffer();
 
         // skybox.render(view);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         water.render(models, cam, deferred, skybox);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
         // Check and call events
         glfwSwapBuffers(window);

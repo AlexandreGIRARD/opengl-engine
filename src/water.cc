@@ -72,6 +72,7 @@ Water::Water(int width, int height, Model &water_surface, float y)
     _water.add_shader("water/water.vs.glsl", GL_VERTEX_SHADER);
     _water.add_shader("water/water.tcs.glsl", GL_TESS_CONTROL_SHADER);
     _water.add_shader("water/water.tes.glsl", GL_TESS_EVALUATION_SHADER);
+    _water.add_shader("water/water.gs.glsl", GL_GEOMETRY_SHADER);
     _water.add_shader("water/water.fs.glsl", GL_FRAGMENT_SHADER);
     _water.link();
 
@@ -80,6 +81,7 @@ Water::Water(int width, int height, Model &water_surface, float y)
     _sub.add_shader("water/underwater.vs.glsl", GL_VERTEX_SHADER);
     _sub.add_shader("water/water.tcs.glsl", GL_TESS_CONTROL_SHADER);
     _sub.add_shader("water/water.tes.glsl", GL_TESS_EVALUATION_SHADER);
+    _sub.add_shader("water/water.gs.glsl", GL_GEOMETRY_SHADER);
     _sub.add_shader("water/underwater.fs.glsl", GL_FRAGMENT_SHADER);
     _sub.link();
 
@@ -157,6 +159,7 @@ void Water::render_sub_surface(Camera cam, Deferred &def)
     _sub.addUniformVec3(pos, "cam_pos");
     _sub.addUniformFloat(_move_offset, "move_offset");
     _sub.addUniformTexture(0, "dudv_map");
+    _sub.addUniformFloat(glfwGetTime(), "t");
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _dudv);
     _sub.addUniformTexture(1, "normal_map");
@@ -196,6 +199,7 @@ void Water::render_abv_surface(std::vector<shared_model> models, Camera cam, Def
     vec3 pos = cam.get_position();
     _water.addUniformMat4(view, "view");
     _water.addUniformVec3(pos, "cam_pos");
+    _water.addUniformFloat(glfwGetTime(), "t");
 
     //Enabling clip no avoid useless output
     glEnable(GL_CLIP_DISTANCE0);

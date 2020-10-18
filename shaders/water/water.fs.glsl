@@ -16,7 +16,7 @@ struct sun_light
     float intensity;
 };
 
-in TES_OUT {
+in GS_OUT {
   vec4 pos;
   vec2 uv;
   vec3 normal;
@@ -74,7 +74,7 @@ void main()
     // Distortion for texture coordinates
     vec2 distorded_coord = texture(dudv_map, fs_in.uv + vec2(move_offset, 0)).rg;
     distorded_coord = fs_in.uv + vec2(distorded_coord.x, distorded_coord.y + move_offset*0.5);
-    vec2 dudv = (texture(dudv_map, distorded_coord).rg * 2.0 - 1.0) * 0.005;// * depth;
+    vec2 dudv = (texture(dudv_map, distorded_coord).rg * 2.0 - 1.0) * 0.005;//* depth;
     vec3 normal = texture(normal_map, distorded_coord).rgb * 2.0 - 1.0;
     normal = normalize(fs_in.TBN * normal);
 
@@ -97,4 +97,5 @@ void main()
 
     refract = mix(refract, vec4(0, 0.2, 0.6, 0.4), 0.4);
     color = mix(reflect, refract, fresnel) + specular * 0.5;
+    // color = refract + specular*0.5;
 }
