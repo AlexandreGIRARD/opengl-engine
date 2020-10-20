@@ -12,14 +12,16 @@ PointLight::PointLight(vec3 pos, vec3 color, float intensity)
 
 uint PointLight::set_shadow_framebuffer()
 {
-    //
     glGenTextures(1, &_depth);
-    glBindTexture(GL_TEXTURE_2D, _depth);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, 2048, 2048, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _depth);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    // Iterate over 6 faces
+    for (auto i=0; i < 6; i++)
+        glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT, 2048, 2048, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
     // Shadow cube map
     glGenTextures(1, &_map);
@@ -37,7 +39,8 @@ uint PointLight::set_shadow_framebuffer()
     // FBO for the light
     glGenFramebuffers(1, &_FBO);
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depth, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _map, 0);
+    glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, _depth, 0);
 
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
@@ -63,6 +66,7 @@ void PointLight::setup_program()
 {
     _program = program();
     _program.add_shader("shadows/point_shadow.vs.glsl", GL_VERTEX_SHADER);
+    _program.add_shader("shadows/point_shadow.gs.glsl", GL_GEOMETRY_SHADER);
     _program.add_shader("shadows/point_shadow.fs.glsl", GL_FRAGMENT_SHADER);
     _program.link();
     _program.use();
@@ -76,21 +80,20 @@ void PointLight::setup_program()
 
 void PointLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)
 {
-    _program.use();
     glViewport(0,0,2048,2048);
-    glClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
-    glCullFace(GL_FRONT);
-
+    _program.use();
     for (auto i=0; i < 6; i++)
-    {
-        glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, _faces[i], _map, 0);
-        glDrawBuffer(GL_COLOR_ATTACHMENT0);
-        glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
-        _program.addUniformMat4(_views[i], "view");
-        for (auto model : models)
-            model->draw(_program);
-    }
+    _program.addUniformMat4(_views[i], ("views[" + std::to_string(i) + "]").c_str());
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
+    glCullFace(GL_FRONT);
+    glClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    for (auto model : models)
+        model->draw(_program);
+
     glCullFace(GL_BACK);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
