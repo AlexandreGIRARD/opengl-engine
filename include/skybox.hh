@@ -3,15 +3,18 @@
 #include <glm/glm.hpp>
 
 #include "program.hh"
+#include "camera.hh"
 
 using namespace glm;
 
 class Skybox
 {
 public:
-    Skybox(std::string path, mat4 &projection);
+    Skybox()
+    {}
+    Skybox(std::string path);
     void set_skybox_cube();
-    void render(mat4 &view);
+    void render(Camera &cam);
 
 private:
     uint _skybox;

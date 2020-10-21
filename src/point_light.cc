@@ -84,7 +84,7 @@ void PointLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)
     _program.use();
     for (auto i=0; i < 6; i++)
     _program.addUniformMat4(_views[i], ("views[" + std::to_string(i) + "]").c_str());
-    
+
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
     glCullFace(GL_FRONT);
     glClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
@@ -95,6 +95,7 @@ void PointLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)
         model->draw(_program);
 
     glCullFace(GL_BACK);
+    glClearColor(0, 0, 0, 0);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 

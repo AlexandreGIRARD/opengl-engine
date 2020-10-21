@@ -16,16 +16,14 @@
 class Model
 {
 public:
-    Model(std::string path, mat4 &model, std::shared_ptr<Material> mat)
-    {
-        load_model(path);
-        _model = model;
-        _mat = mat;
-    }
+    Model(std::string path, mat4 &model, std::shared_ptr<Material> mat);
+    Model(std::string path, std::shared_ptr<Material> mat, vec3 translation, vec3 rotation, vec3 scale, float degree);
+
     void draw(program &p);
     void draw_patches(program &p);
     mat4 get_model();
     void set_model(mat4 &model);
+    void compute_model();
 
 private:
     void load_model(std::string path);
@@ -35,6 +33,8 @@ private:
     std::vector<Mesh> _meshes;
     std::string _dir;
 
+    vec3 _translation, _scale, _rotation;
+    float _degree;
     mat4 _model;
     std::shared_ptr<Material> _mat;
 };

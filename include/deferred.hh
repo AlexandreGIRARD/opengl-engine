@@ -11,13 +11,16 @@
 class Deferred
 {
 public:
+    Deferred()
+    {}
     Deferred(int width, int height, bool with_shadow);
     void update_viewport(mat4 &view, vec3 &position);
+    void update_viewport(Camera &cam);
     void gbuffer_render(std::vector<std::shared_ptr<Model>> models);
 
     void render();
     void render_screen_quad();
-    void render_skybox(Skybox &skybox, mat4 &view);
+    void render_skybox(Skybox &skybox, Camera &cam);
 
     void bind_fbo_to_backbuffer();
 

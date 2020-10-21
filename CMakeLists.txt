@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(engine)
 
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(OpenGL_GL_PREFERENCE "GLVND")
@@ -26,6 +27,7 @@ add_executable(engine
     src/normal_material.cc
     src/textured_material.cc
     src/skybox.cc
+    src/scene.cc
     )
 
 target_link_libraries(engine glfw OpenGL::GL X11 pthread Xrandr Xi dl assimp)

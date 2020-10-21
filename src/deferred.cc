@@ -148,7 +148,7 @@ void Deferred::render()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Deferred::render_skybox(Skybox &skybox, mat4 &view)
+void Deferred::render_skybox(Skybox &skybox, Camera &cam)
 {
     // Copy depth buffer from _FBO to _final_FBO
     glBindFramebuffer(GL_READ_FRAMEBUFFER, _FBO);
@@ -161,7 +161,7 @@ void Deferred::render_skybox(Skybox &skybox, mat4 &view)
     // Render skybox in _final_FBO
     glBindFramebuffer(GL_FRAMEBUFFER, _final_FBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depth, 0);
-    skybox.render(view);
+    skybox.render(cam);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
@@ -212,6 +212,17 @@ void Deferred::render_screen_quad()
 
 void Deferred::update_viewport(mat4 &view, vec3 &position)
 {
+    _program.use();
+    _program.addUniformMat4(view, "view");
+    _program.addUniformVec3(position, "cam_pos");
+    _final.use();
+    _final.addUniformVec3(position, "cam_pos");
+}
+
+void Deferred::update_viewport(Camera &cam)
+{
+    mat4 view = cam.look_at();
+    vec3 position = cam.get_position();
     _program.use();
     _program.addUniformMat4(view, "view");
     _program.addUniformVec3(position, "cam_pos");

@@ -5,6 +5,8 @@
 class DirectionalLight : public Light
 {
 public:
+    DirectionalLight()
+    {}
     DirectionalLight(vec3 vect, vec3 color, float intensity);
     uint set_shadow_framebuffer() override;
     void draw_shadow_map(std::vector<std::shared_ptr<Model>> models) override;

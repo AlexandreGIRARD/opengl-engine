@@ -1,6 +1,6 @@
 #version 450 core
 
-#define NB_PTS_LIGHTS 1
+#define NB_PTS_LIGHTS 2
 #define BIAS 0.001
 
 struct point_light

@@ -2,11 +2,11 @@
 
 Textured_Material::Textured_Material(std::string path)
 {
-    auto tmp_name = path + "basecolor.jpg";
+    auto tmp_name = path + "/basecolor.jpg";
     _diffuse = load_texture(tmp_name.c_str());
-    tmp_name = path + "normal.jpg";
+    tmp_name = path + "/normal.jpg";
     _normal = load_texture(tmp_name.c_str());
-    tmp_name = path + "height.jpg";
+    tmp_name = path + "/height.jpg";
     _height = load_texture(tmp_name.c_str());
 }
 

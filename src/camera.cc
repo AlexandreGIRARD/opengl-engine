@@ -35,6 +35,11 @@ glm::vec3 Camera::get_right()
     return _right;
 }
 
+glm::mat4 Camera::get_projection()
+{
+    return _projection;
+}
+
 void Camera::set_speed(float speed)
 {
     _speed = speed;
@@ -75,19 +80,19 @@ void Camera::update(GLFWwindow *window, float delta, float mouse_x, float mouse_
     // Keyboard events
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)  // W : forwards
     {
-        set_position(get_position() + get_forward() * get_speed() * delta);
+        set_position(_position + _forward * _speed * delta);
     }
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)  // S : backwards
     {
-        set_position(get_position() - get_forward() * get_speed() * delta);
+        set_position(_position - _forward * _speed * delta);
     }
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)  // A : left
     {
-        set_position(get_position() - get_right() * get_speed() * delta);
+        set_position(_position - _right * _speed * delta);
     }
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)  // D : right
     {
-        set_position(get_position() + get_right() * get_speed() * delta);
+        set_position(_position + _right * _speed * delta);
     }
 
     // Mouse events

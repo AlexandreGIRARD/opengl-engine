@@ -1,0 +1,124 @@
+{
+    "height": 1080,
+    "width": 1920,
+    "camera": {
+        "position": [0,0,-5],
+        "forward": [1,0,0],
+        "up": [0,1,0],
+        "fov": 90,
+        "speed": 5,
+        "near": 1,
+        "far": 10
+    },
+    "skybox": "textures/skybox/skybox",
+    "sun": {
+        "vect": [0,0.5,-1],
+        "color": [1,1,1],
+        "intensity": 1
+    },
+    "lights": [
+        {
+            "pos": [0,0,3],
+            "color": [1,1,1],
+            "intensity": 1
+        },
+        {
+            "pos": [0,0,-1],
+            "color": [1,1,1],
+            "intensity": 1
+        }
+    ],
+    "materials": [
+        {
+            "type": "normal",
+            "name": "red",
+            "diffuse": [1,0,0],
+            "specular": [0.7,0.7,0.7],
+            "shininess": 0.25
+        },
+        {
+            "type": "normal",
+            "name": "blue",
+            "diffuse": [0,1,1],
+            "specular": [0.7,0.7,0.7],
+            "shininess": 0.25
+        },
+        {
+            "type": "normal",
+            "name": "gray",
+            "diffuse": [0.4,0.4,0.4],
+            "specular": [0.7,0.7,0.7],
+            "shininess": 0.25
+        },
+        {
+            "type": "textured",
+            "path": "textures/metal"
+        }
+    ],
+    "models": [
+        {
+            "path": "models/teapot_stanford.obj",
+            "material_id": 0,
+            "translation": [2,-1,2],
+            "rotation": [0,1,0],
+            "degree": 90.0,
+            "scale": [0.6,0.6,0.6]
+        },
+        {
+            "path": "models/cube.obj",
+            "material_id": 2,
+            "translation": [0,-4,4],
+            "rotation": [0,1,0],
+            "degree": 90.0,
+            "scale": [1,1,1]
+        },
+        {
+            "path": "models/smooth_sphere.obj",
+            "material_id": 1,
+            "translation": [-2,-2,2],
+            "rotation": [0,1,0],
+            "degree": 0.0,
+            "scale": [1,1,1]
+        },
+        {
+            "path": "models/wall.obj",
+            "material_id": 2,
+            "translation": [0, -5, 0],
+            "degree": 0,
+            "rotation": [0, 1, 0],
+            "scale": [5, 5, 5]
+        },
+        {
+            "path": "models/wall.obj",
+            "material_id": 2,
+            "translation": [0, 0, 5],
+            "degree": -90,
+            "rotation": [1, 0, 0],
+            "scale": [5, 5, 5]
+        },
+        {
+            "path": "models/wall.obj",
+            "material_id": 2,
+            "translation": [0, -5, -5],
+            "degree": 90,
+            "rotation": [1, 0, 0],
+            "scale": [5, 5, 5]
+        },
+        {
+            "path": "models/wall.obj",
+            "material_id": 3,
+            "translation": [-5, 0, 0],
+            "degree": -90,
+            "rotation": [0, 0, 1],
+            "scale": [5, 5, 5]
+        },
+        {
+            "path": "models/wall.obj",
+            "material_id": 3,
+            "translation": [5, 0, 0],
+            "degree": 90,
+            "rotation": [0, 0, 1],
+            "scale": [5, 5, 5]
+        }
+    ]
+}

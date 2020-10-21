@@ -215,7 +215,7 @@ void Water::render_abv_surface(std::vector<shared_model> models, Camera cam, Def
     _deferred_sky.update_viewport(view, pos);
     _deferred_sky.gbuffer_render(models);
     _deferred_sky.render();
-    _deferred_sky.render_skybox(skybox, view);
+    _deferred_sky.render_skybox(skybox, cam);
 
     // Water Rendering
     glDisable(GL_CLIP_DISTANCE0);

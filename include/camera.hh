@@ -13,15 +13,34 @@ public:
 
     Camera()
     {}
-    Camera(vec3 position, vec3 target, vec3 up)
-        : _speed(1)
-        , _position(position)
+    Camera(vec3 position, vec3 target, vec3 up, float fov, float speed, float near, float far, float ratio)
+        : _position(position)
         , _target(target)
         , _up(up)
         , _forward(target - position)
         , _right(- cross(up, _forward))
+        , _speed(speed)
+        , _fov(fov)
         , _yaw(90.f)
         , _pitch(0.f)
+        , _near(near)
+        , _far(far)
+    {
+        _projection = perspective(radians(_fov), ratio, _near, _far);
+    }
+
+    Camera(vec3 position, vec3 target, vec3 up)
+        : _position(position)
+        , _target(target)
+        , _up(up)
+        , _forward(target - position)
+        , _right(- cross(up, _forward))
+        , _speed(0)
+        , _fov(90.f)
+        , _yaw(90.f)
+        , _pitch(0.f)
+        , _near(1)
+        , _far(10)
     {}
 
     mat4 look_at();
@@ -32,6 +51,7 @@ public:
     vec3 get_up();
     vec3 get_forward();
     vec3 get_right();
+    mat4 get_projection();
 
     void set_speed(float speed);
     void set_position(vec3 position);
@@ -46,15 +66,20 @@ public:
     void invert_pitch();
 
 private:
-    float _speed;
     vec3 _position;
     vec3 _target;
     vec3 _up;
     vec3 _forward;
     vec3 _right;
 
+    float _speed;
+    float _fov;
     float _yaw;
     float _pitch;
+    float _near;
+    float _far;
+
+    mat4 _projection;
 
     vec2 _last_mouse_pos;
     vec2 _mouse_pos;
