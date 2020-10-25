@@ -5,7 +5,7 @@ static uint buffer[4] = {GL_COLOR_ATTACHMENT0,
                          GL_COLOR_ATTACHMENT2,
                          GL_COLOR_ATTACHMENT3};
 
-Deferred::Deferred(int width, int height, bool width_shadow)
+Deferred::Deferred(int width, int height, shared_camera camera, bool width_shadow)
 {
     // Color texture
     glGenTextures(1, &_colors);
@@ -99,14 +99,11 @@ Deferred::Deferred(int width, int height, bool width_shadow)
         exit(-1);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-    mat4 projection = perspective(radians(60.0f), (float)width / (float)height, 0.01f, 50.0f);
-
     _program = program();
     _program.add_shader("deferred/deferred.vs.glsl", GL_VERTEX_SHADER);
     _program.add_shader("deferred/deferred.fs.glsl", GL_FRAGMENT_SHADER);
     _program.link();
     _program.use();
-    _program.addUniformMat4(projection, "projection");
 
     _final = program();
     if (width_shadow) {
@@ -119,8 +116,14 @@ Deferred::Deferred(int width, int height, bool width_shadow)
     }
     _final.link();
 
+    _camera = camera;
+    _occlusion = std::make_shared<AmbientOcclusion>(width, height);
+
     set_screen_quad();
 }
+
+Deferred::~Deferred()
+{}
 
 void Deferred::gbuffer_render(std::vector<std::shared_ptr<Model>> models)
 {
@@ -137,6 +140,9 @@ void Deferred::gbuffer_render(std::vector<std::shared_ptr<Model>> models)
 
 void Deferred::render()
 {
+    // occlusion rendering
+    _occlusion->render(*this);
+
     _final.use();
     set_textures(_final);
     glBindFramebuffer(GL_FRAMEBUFFER, _final_FBO);
@@ -148,7 +154,7 @@ void Deferred::render()
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Deferred::render_skybox(Skybox &skybox, Camera &cam)
+void Deferred::render_skybox(Skybox &skybox)
 {
     // Copy depth buffer from _FBO to _final_FBO
     glBindFramebuffer(GL_READ_FRAMEBUFFER, _FBO);
@@ -161,7 +167,7 @@ void Deferred::render_skybox(Skybox &skybox, Camera &cam)
     // Render skybox in _final_FBO
     glBindFramebuffer(GL_FRAMEBUFFER, _final_FBO);
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, _depth, 0);
-    skybox.render(cam);
+    skybox.render(*_camera);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 }
@@ -210,21 +216,14 @@ void Deferred::render_screen_quad()
     glBindVertexArray(0);
 }
 
-void Deferred::update_viewport(mat4 &view, vec3 &position)
+void Deferred::update_viewport()
 {
+    mat4 view = _camera->look_at();
+    mat4 projection = _camera->get_projection();
+    vec3 position = _camera->get_position();
     _program.use();
     _program.addUniformMat4(view, "view");
-    _program.addUniformVec3(position, "cam_pos");
-    _final.use();
-    _final.addUniformVec3(position, "cam_pos");
-}
-
-void Deferred::update_viewport(Camera &cam)
-{
-    mat4 view = cam.look_at();
-    vec3 position = cam.get_position();
-    _program.use();
-    _program.addUniformMat4(view, "view");
+    _program.addUniformMat4(projection, "projection");
     _program.addUniformVec3(position, "cam_pos");
     _final.use();
     _final.addUniformVec3(position, "cam_pos");
@@ -232,21 +231,25 @@ void Deferred::update_viewport(Camera &cam)
 
 void Deferred::set_textures(program &p)
 {
-    p.addUniformTexture(0, "def_color");
+    p.addUniformTexture(0, "def.color");
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _colors);
 
-    p.addUniformTexture(1, "def_normal");
+    p.addUniformTexture(1, "def.normal");
     glActiveTexture(GL_TEXTURE0+1);
     glBindTexture(GL_TEXTURE_2D, _normals);
 
-    p.addUniformTexture(2, "def_position");
+    p.addUniformTexture(2, "def.position");
     glActiveTexture(GL_TEXTURE0+2);
     glBindTexture(GL_TEXTURE_2D, _position);
 
-    p.addUniformTexture(3, "def_specular");
+    p.addUniformTexture(3, "def.specular");
     glActiveTexture(GL_TEXTURE0+3);
     glBindTexture(GL_TEXTURE_2D, _specular);
+
+    p.addUniformTexture(4, "def.occlusion");
+    glActiveTexture(GL_TEXTURE0+4);
+    glBindTexture(GL_TEXTURE_2D, _occlusion->get_map());
 }
 
 uint Deferred::get_pos()
@@ -257,6 +260,11 @@ uint Deferred::get_pos()
 uint Deferred::get_depth()
 {
     return _depth;
+}
+
+uint Deferred::get_normal()
+{
+    return _normals;
 }
 
 program Deferred::get_final()
@@ -274,10 +282,20 @@ uint Deferred::get_output()
     return _output;
 }
 
+Camera Deferred::get_camera()
+{
+    return *_camera;
+}
+
 void Deferred::set_shadow_maps(DirectionalLight &sun, std::vector<std::shared_ptr<PointLight>> lights)
 {
     _final.use();
     sun.set_shadow_map(_final);
     for (auto light : lights)
         light->set_shadow_cube(_final);
+}
+
+void Deferred::set_camera(shared_camera camera)
+{
+    _camera = camera;
 }

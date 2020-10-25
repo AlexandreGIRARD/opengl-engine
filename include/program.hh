@@ -18,7 +18,8 @@ public:
     void link();
     void use();
     void addUniformTexture(const uint unit, const char *name);
-    void addUniformMat4(glm::mat4 &matrix, const char *name);
+    void addUniformMat4(glm::mat4 &matrix, const char *name);\
+    void addUniformVec2(const glm::vec2 vector, const char *name);
     void addUniformVec3(const glm::vec3 vector, const char *name);
     void addUniformVec4(const glm::vec4 vector, const char *name);
     void addUniformFloat(float val, const char* name);

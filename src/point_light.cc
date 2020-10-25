@@ -112,7 +112,7 @@ void PointLight::set_light_in_program(program p)
 void PointLight::set_shadow_cube(program p)
 {
     auto tmp_id = std::to_string(_id - 1);
-    p.addUniformTexture(4 + _id, ("lights[" + tmp_id + "].map").c_str());
-    glActiveTexture(GL_TEXTURE4 + _id);
+    p.addUniformTexture(5 + _id, ("lights[" + tmp_id + "].map").c_str());
+    glActiveTexture(GL_TEXTURE5 + _id);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _map);
 }

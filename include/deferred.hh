@@ -7,36 +7,50 @@
 #include "point_light.hh"
 #include "model.hh"
 #include "skybox.hh"
+#include "ambient_occlusion.hh"
+
+class AmbientOcclusion;
+
+using shared_camera = std::shared_ptr<Camera>;
+using shared_occlusion = std::shared_ptr<AmbientOcclusion>;
+
 
 class Deferred
 {
 public:
     Deferred()
     {}
-    Deferred(int width, int height, bool with_shadow);
-    void update_viewport(mat4 &view, vec3 &position);
-    void update_viewport(Camera &cam);
+    Deferred(int width, int height, shared_camera cam, bool with_shadow);
+    ~Deferred();
+    void update_viewport();
     void gbuffer_render(std::vector<std::shared_ptr<Model>> models);
 
     void render();
     void render_screen_quad();
-    void render_skybox(Skybox &skybox, Camera &cam);
+    void render_skybox(Skybox &skybox);
 
     void bind_fbo_to_backbuffer();
 
     uint get_pos();
+    uint get_normal();
     uint get_depth();
     uint get_output();
+    Camera get_camera();
     program get_final();
     program get_program();
 
     void set_textures(program &p);
+    void set_camera(shared_camera camera);
+
     void set_screen_quad();
     void set_shadow_maps(DirectionalLight &sun, std::vector<std::shared_ptr<PointLight>> lights);
 
 private:
     program _program;
     program _final;
+
+    shared_occlusion _occlusion;
+    shared_camera _camera;
 
     uint _quad_VAO;
     uint _quad_VBO;

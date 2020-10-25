@@ -1,5 +1,51 @@
 #include <camera.hh>
 
+Camera::Camera(vec3 position, vec3 target, vec3 up, float fov, float speed, float near, float far, float ratio)
+    : _position(position)
+    , _target(target)
+    , _up(up)
+    , _forward(target - position)
+    , _right(- cross(up, _forward))
+    , _speed(speed)
+    , _fov(fov)
+    , _yaw(90.f)
+    , _pitch(0.f)
+    , _near(near)
+    , _far(far)
+{
+    _projection = perspective(radians(_fov), ratio, _near, _far);
+}
+
+Camera::Camera(vec3 position, vec3 target, vec3 up)
+    : _position(position)
+    , _target(target)
+    , _up(up)
+    , _forward(target - position)
+    , _right(- cross(up, _forward))
+    , _speed(0)
+    , _fov(90.f)
+    , _yaw(90.f)
+    , _pitch(0.f)
+    , _near(1)
+    , _far(10)
+{}
+
+Camera::Camera(const Camera &camera)
+    : _position(vec3(camera._position))
+    , _target(vec3(camera._target))
+    , _up(vec3(camera._up))
+    , _forward(camera._target - camera._position)
+    , _right(- cross(camera._up, _forward))
+    , _speed(camera._speed)
+    , _fov(camera._fov)
+    , _yaw(90.f)
+    , _pitch(0.f)
+    , _near(camera._near)
+    , _far(camera._far)
+{
+    _projection = mat4(camera._projection);
+}
+
 glm::mat4 Camera::look_at()
 {
     return glm::lookAt(_position, _position + _forward, _up);

@@ -13,35 +13,9 @@ public:
 
     Camera()
     {}
-    Camera(vec3 position, vec3 target, vec3 up, float fov, float speed, float near, float far, float ratio)
-        : _position(position)
-        , _target(target)
-        , _up(up)
-        , _forward(target - position)
-        , _right(- cross(up, _forward))
-        , _speed(speed)
-        , _fov(fov)
-        , _yaw(90.f)
-        , _pitch(0.f)
-        , _near(near)
-        , _far(far)
-    {
-        _projection = perspective(radians(_fov), ratio, _near, _far);
-    }
-
-    Camera(vec3 position, vec3 target, vec3 up)
-        : _position(position)
-        , _target(target)
-        , _up(up)
-        , _forward(target - position)
-        , _right(- cross(up, _forward))
-        , _speed(0)
-        , _fov(90.f)
-        , _yaw(90.f)
-        , _pitch(0.f)
-        , _near(1)
-        , _far(10)
-    {}
+    Camera(vec3 position, vec3 target, vec3 up, float fov, float speed, float near, float far, float ratio);
+    Camera(vec3 position, vec3 target, vec3 up);
+    Camera(const Camera &cam);
 
     mat4 look_at();
 

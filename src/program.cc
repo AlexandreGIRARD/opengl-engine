@@ -58,6 +58,11 @@ void program::addUniformTexture(const uint unit, const char *name)
     glUniform1i(glGetUniformLocation(_id_program, name), unit);
 }
 
+void program::addUniformVec2(const glm::vec2 vector, const char *name)
+{
+    glUniform2f(glGetUniformLocation(_id_program, name), vector.x, vector.y);
+}
+
 void program::addUniformVec3(const glm::vec3 vector, const char *name)
 {
     glUniform3f(glGetUniformLocation(_id_program, name), vector.x, vector.y, vector.z);

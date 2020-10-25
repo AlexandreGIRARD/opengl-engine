@@ -101,7 +101,7 @@ void DirectionalLight::set_light_in_program(program p)
 void DirectionalLight::set_shadow_map(program p)
 {
     auto tmp_id = std::to_string(_id);
-    p.addUniformTexture(4 , "sun.map");
-    glActiveTexture(GL_TEXTURE4);
+    p.addUniformTexture(5 , "sun.map");
+    glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, _map);
 }

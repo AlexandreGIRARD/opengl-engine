@@ -14,6 +14,7 @@
 #include "textured_material.hh"
 #include "skybox.hh"
 
+using shared_camera = std::shared_ptr<Camera>;
 using shared_lights = std::vector<std::shared_ptr<PointLight>>;
 using shared_materials = std::vector<std::shared_ptr<Material>>;
 using shared_models = std::vector<std::shared_ptr<Model>>;
@@ -34,7 +35,7 @@ public:
 
 private:
     uint _width, _height;
-    Camera _camera;
+    shared_camera _camera;
     Deferred _deferred;
     Skybox _skybox;
     DirectionalLight _sun;

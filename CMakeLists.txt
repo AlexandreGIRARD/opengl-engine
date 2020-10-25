@@ -28,6 +28,7 @@ add_executable(engine
     src/textured_material.cc
     src/skybox.cc
     src/scene.cc
+    src/ambient_occlusion.cc
     )
 
 target_link_libraries(engine glfw OpenGL::GL X11 pthread Xrandr Xi dl assimp)

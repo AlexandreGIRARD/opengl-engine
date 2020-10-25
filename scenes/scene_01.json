@@ -8,7 +8,7 @@
         "fov": 90,
         "speed": 5,
         "near": 1,
-        "far": 10
+        "far": 20
     },
     "skybox": "textures/skybox/skybox",
     "sun": {

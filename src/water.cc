@@ -5,7 +5,6 @@
 
 Water::Water(int width, int height, Model &water_surface, float y)
     : _water_surface(water_surface),
-      _deferred_sky(width, height, false),
       _width(width),
       _height(height),
       _y(y)
@@ -116,9 +115,6 @@ Water::Water(int width, int height, Model &water_surface, float y)
 void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> lights)
 {
     // Reflection program init uniform
-    auto gprogram = _deferred_sky.get_program();
-    mat4 projection = perspective(radians(60.0f), (float)_width / (float)_height, 0.01f, 50.0f);
-    gprogram.addUniformMat4(projection, "projection");
     auto light_program = _deferred_sky.get_final();
     sun_light.set_light_in_program(light_program);
     for (auto light : lights)
@@ -126,36 +122,42 @@ void Water::setup_program(DirectionalLight sun_light, std::vector<shared_light> 
 
     // Water program init uniform
     _water.use();
-    _water.addUniformMat4(projection, "projection");
     sun_light.set_light_in_program(_water);
     for (auto light : lights)
         light->set_light_in_program(_water);
 
     // Under Water program init uniform
     _sub.use();
-    _sub.addUniformMat4(projection, "projection");
     sun_light.set_light_in_program(_sub);
     for (auto light : lights)
         light->set_light_in_program(_sub);
 }
 
-void Water::render(std::vector<shared_model> models, Camera cam, Deferred &def, Skybox &skybox)
+void Water::setup_deferred(uint width, uint height)
+{
+    shared_camera bellow_cam = std::make_shared<Camera>(vec3(0,0,0), vec3(0,0,0), vec3(0,0,0));
+    _deferred_sky = Deferred(width, height, bellow_cam, false);
+}
+
+void Water::render(std::vector<shared_model> models, Deferred &def, Skybox &skybox)
 {
     _move_offset += _wave_speed;
     // _move_offset = _move_offset >= 1.f ? 0.f : _move_offset;
-    if (cam.get_position().y >= -1) // TODO use water_surface.y and below surface
-        render_abv_surface(models, cam, def, skybox);
+    if (def.get_camera().get_position().y >= -1) // TODO use water_surface.y and below surface
+        render_abv_surface(models, def, skybox);
     else
-        render_sub_surface(cam, def);
+        render_sub_surface(def);
 }
 
-void Water::render_sub_surface(Camera cam, Deferred &def)
+void Water::render_sub_surface(Deferred &def)
 {
     // Render sub water surface
     _sub.use();
-    mat4 view = cam.look_at();
-    vec3 pos = cam.get_position();
+    mat4 view = def.get_camera().look_at();
+    mat4 projection = def.get_camera().get_projection();
+    vec3 pos = def.get_camera().get_position();
     _sub.addUniformMat4(view, "view");
+    _sub.addUniformMat4(projection, "projection");
     _sub.addUniformVec3(pos, "cam_pos");
     _sub.addUniformFloat(_move_offset, "move_offset");
     _sub.addUniformTexture(0, "dudv_map");
@@ -192,12 +194,14 @@ void Water::render_sub_surface(Camera cam, Deferred &def)
 
 }
 
-void Water::render_abv_surface(std::vector<shared_model> models, Camera cam, Deferred &def, Skybox &skybox)
+void Water::render_abv_surface(std::vector<shared_model> models, Deferred &def, Skybox &skybox)
 {
     _water.use();
-    mat4 view = cam.look_at();
-    vec3 pos = cam.get_position();
+    mat4 view = def.get_camera().look_at();
+    mat4 projection = def.get_camera().get_projection();
+    vec3 pos = def.get_camera().get_position();
     _water.addUniformMat4(view, "view");
+    _water.addUniformMat4(projection, "projection");
     _water.addUniformVec3(pos, "cam_pos");
     _water.addUniformFloat(glfwGetTime(), "t");
 
@@ -205,17 +209,19 @@ void Water::render_abv_surface(std::vector<shared_model> models, Camera cam, Def
     glEnable(GL_CLIP_DISTANCE0);
 
     // Deferred reflection texture
-    float new_y = 2 * (cam.get_position().y - _y);
-    cam.set_position_y(cam.get_position().y - new_y);
-    cam.invert_pitch();
-    view = cam.look_at();
+    auto bellow_cam = std::make_shared<Camera>(def.get_camera());
+    float new_y = 2 * (bellow_cam->get_position().y - _y);
+    bellow_cam->set_position_y(bellow_cam->get_position().y - new_y);
+    bellow_cam->invert_pitch();
     auto deferred_program = _deferred_sky.get_program();
     deferred_program.use();
+    deferred_program.addUniformMat4(projection, "projection");
     deferred_program.addUniformVec4(_clip_reflection, "clip_plane");
-    _deferred_sky.update_viewport(view, pos);
+    _deferred_sky.set_camera(bellow_cam);
+    _deferred_sky.update_viewport();
     _deferred_sky.gbuffer_render(models);
     _deferred_sky.render();
-    _deferred_sky.render_skybox(skybox, cam);
+    _deferred_sky.render_skybox(skybox);
 
     // Water Rendering
     glDisable(GL_CLIP_DISTANCE0);

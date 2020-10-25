@@ -19,6 +19,15 @@ struct sun_light
     sampler2D map;
 };
 
+struct deferred_shading
+{
+    sampler2D color;
+    sampler2D normal;
+    sampler2D position;
+    sampler2D specular;
+    sampler2D occlusion;
+};
+
 struct deferred_info
 {
     vec3 color;
@@ -26,6 +35,7 @@ struct deferred_info
     vec3 pos;
     vec3 spec;
     float shininess;
+    float occlusion;
     uint id;
 };
 
@@ -36,10 +46,7 @@ uniform vec3 cam_pos;
 uniform point_light lights[NB_PTS_LIGHTS];
 uniform sun_light sun;
 
-uniform sampler2D def_color;
-uniform sampler2D def_normal;
-uniform sampler2D def_position;
-uniform sampler2D def_specular;
+uniform deferred_shading def;
 
 uniform mat4 sun_view;
 uniform mat4 sun_projection;
@@ -135,12 +142,13 @@ void main()
     // Get deferred informations
     vec2 norm_coord = frag_uv;
     deferred_info infos;
-    infos.color = texture(def_color, norm_coord).xyz;
-    infos.normal = texture(def_normal, norm_coord).xyz;
-    infos.pos = texture(def_position, norm_coord).xyz;
-    infos.spec = texture(def_specular, norm_coord).xyz;
-    infos.shininess = texture(def_normal, norm_coord)[3];
-    infos.id = uint(texture(def_position, norm_coord).w);
+    infos.color = texture(def.color, norm_coord).xyz;
+    infos.normal = texture(def.normal, norm_coord).xyz;
+    infos.pos = texture(def.position, norm_coord).xyz;
+    infos.spec = texture(def.specular, norm_coord).xyz;
+    infos.shininess = texture(def.normal, norm_coord)[3];
+    infos.id = uint(texture(def.position, norm_coord).w);
+    infos.occlusion = texture(def.occlusion, norm_coord).x;
 
     // Shadow uv computation for sun shadow
 
@@ -154,5 +162,5 @@ void main()
         final_color += get_light(lights[i], infos, view_vect);
 
 
-    color = vec4(final_color, gl_FragCoord.z);
+    color = infos.occlusion * vec4(final_color, gl_FragCoord.z);
 }

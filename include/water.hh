@@ -15,9 +15,10 @@ class Water
 public:
     Water(int width, int height, Model &water_surface, float y);
     void setup_program(DirectionalLight sun_light, std::vector<shared_light> lights);
-    void render(std::vector<shared_model> models, Camera cam, Deferred &def, Skybox &skybox);
-    void render_abv_surface(std::vector<shared_model> models, Camera cam, Deferred &def, Skybox &skybox);
-    void render_sub_surface(Camera cam, Deferred &def);
+    void setup_deferred(uint width, uint height);
+    void render(std::vector<shared_model> models, Deferred &def, Skybox &skybox);
+    void render_abv_surface(std::vector<shared_model> models, Deferred &def, Skybox &skybox);
+    void render_sub_surface(Deferred &def);
 
 private:
     Model _water_surface;

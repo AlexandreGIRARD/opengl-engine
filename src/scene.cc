@@ -17,10 +17,11 @@ Scene::Scene(const char *path)
         light->setup_program();
 
     // Setup Deferred rendering
-    _deferred = Deferred(_width, _height, true);
+    _deferred = Deferred(_width, _height, _camera, true);
     _sun.set_light_in_program(_deferred.get_final());
     for (auto light : _lights)
         light->set_light_in_program(_deferred.get_final());
+    // Setup occlusion ambient
 }
 
 void Scene::parse_json(nlohmann::json &j)
@@ -31,7 +32,7 @@ void Scene::parse_json(nlohmann::json &j)
 
     // Setup main Camera
     auto j_cam = j["camera"];
-    _camera = Camera(vec3(j_cam["position"][0], j_cam["position"][1], j_cam["position"][2]),
+    _camera = std::make_shared<Camera>(vec3(j_cam["position"][0], j_cam["position"][1], j_cam["position"][2]),
             vec3(j_cam["forward"][0] , j_cam["forward"][1] , j_cam["forward"][2]),
             vec3(j_cam["up"][0]      , j_cam["up"][1]      , j_cam["up"][2]),
             j_cam["fov"], j_cam["speed"], j_cam["near"], j_cam["far"], (float)_width/_height);
@@ -115,7 +116,7 @@ void Scene::add_model(nlohmann::json &j)
 
 void Scene::render(GLFWwindow *window, float delta, float xpos, float ypos)
 {
-    _camera.update(window, delta, xpos, ypos);
+    _camera->update(window, delta, xpos, ypos);
 
     // Update sun position from camera pos
     // sun.update_position(cam.get_position()); <-- TODO
@@ -125,7 +126,7 @@ void Scene::render(GLFWwindow *window, float delta, float xpos, float ypos)
        */
 
     // First pass deferred rendering --> fill G_BUFFER
-    _deferred.update_viewport(_camera);
+    _deferred.update_viewport();
     _deferred.gbuffer_render(_models);
 
     // Shadow computing
@@ -137,7 +138,7 @@ void Scene::render(GLFWwindow *window, float delta, float xpos, float ypos)
     // Second pass deferred rendering --> render using G_BUFFER & SHADOWS
     _deferred.set_shadow_maps(_sun, _lights);
     _deferred.render();
-    _deferred.render_skybox(_skybox, _camera);
+    _deferred.render_skybox(_skybox);
     _deferred.bind_fbo_to_backbuffer(); // TODO Need to be erased not fucked up tweak
 
     // Water rendering
