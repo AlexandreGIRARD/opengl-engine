@@ -68,6 +68,16 @@ void Scene::parse_json(nlohmann::json &j)
     for (auto j_model : j["models"])
         add_model(j_model);
 
+    // Setup boids
+    if (j.contains("boids"))
+    {
+        auto j_boids = j["boids"];
+        auto j_model = j_boids["model"];
+        shared_model model = std::make_shared<Model>(j_model["path"], _materials[j_model["material_id"]]);
+        _swarm = Boids(j_boids["size"], j_boids["speed"], j_boids["separation"], j_boids["alignment"],
+            j_boids["cohesion"], model);
+    }
+
     // Setup water
     // model_trans = translate(model, vec3(0, -1, 0));
     // model_scale = scale(model_trans, vec3(5, 5, 5));
@@ -127,12 +137,12 @@ void Scene::render(GLFWwindow *window, float delta, float xpos, float ypos)
 
     // First pass deferred rendering --> fill G_BUFFER
     _deferred.update_viewport();
-    _deferred.gbuffer_render(_models);
+    _deferred.gbuffer_render(_models, _swarm);
 
     // Shadow computing
-    _sun.draw_shadow_map(_models);
+    _sun.draw_shadow_map(_models, _swarm);
     for (auto light : _lights)
-        light->draw_shadow_map(_models);
+        light->draw_shadow_map(_models, _swarm);
     glViewport(0, 0, _width, _height);
 
     // Second pass deferred rendering --> render using G_BUFFER & SHADOWS

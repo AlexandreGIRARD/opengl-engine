@@ -8,8 +8,10 @@
 #include "model.hh"
 #include "program.hh"
 #include "camera.hh"
+#include "boids.hh"
 
 using namespace glm;
+using shared_models = std::vector<std::shared_ptr<Model>>;
 
 class Light
 {
@@ -18,7 +20,8 @@ public:
     {}
     Light(vec3 color, float intensity);
     virtual uint set_shadow_framebuffer() = 0;
-    virtual void draw_shadow_map(std::vector<std::shared_ptr<Model>> models) = 0;
+    virtual void draw_shadow_map(shared_models models) = 0;
+    virtual void draw_shadow_map(shared_models models, Boids &swarm) = 0;
     // virtual void setup_program(vec3 direction, vec3 optional_pos) = 0;
     virtual void set_light_in_program(program p) = 0;
 

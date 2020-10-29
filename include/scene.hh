@@ -13,6 +13,7 @@
 #include "normal_material.hh"
 #include "textured_material.hh"
 #include "skybox.hh"
+#include "boids.hh"
 
 using shared_camera = std::shared_ptr<Camera>;
 using shared_lights = std::vector<std::shared_ptr<PointLight>>;
@@ -42,6 +43,7 @@ private:
     shared_lights _lights;
     shared_materials _materials;
     shared_models _models;
+    Boids _swarm;
 };
 
 /*

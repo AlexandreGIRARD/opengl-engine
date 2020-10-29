@@ -138,6 +138,20 @@ void Deferred::gbuffer_render(std::vector<std::shared_ptr<Model>> models)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void Deferred::gbuffer_render(std::vector<std::shared_ptr<Model>> models, Boids &swarm)
+{
+    _program.use();
+    glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDrawBuffers(4, buffer);
+
+    for (auto model : models)
+        model->draw(_program);
+    swarm.draw(_program);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
 void Deferred::render()
 {
     // occlusion rendering
@@ -219,6 +233,7 @@ void Deferred::render_screen_quad()
 void Deferred::update_viewport()
 {
     mat4 view = _camera->look_at();
+    mat4 inverse_view = inverse(view);
     mat4 projection = _camera->get_projection();
     vec3 position = _camera->get_position();
     _program.use();
@@ -227,6 +242,8 @@ void Deferred::update_viewport()
     _program.addUniformVec3(position, "cam_pos");
     _final.use();
     _final.addUniformVec3(position, "cam_pos");
+    _final.addUniformMat4(inverse_view, "inverse_view");
+    _final.addUniformMat4(view, "view");
 }
 
 void Deferred::set_textures(program &p)

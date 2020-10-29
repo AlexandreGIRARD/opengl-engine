@@ -8,6 +8,7 @@
 #include "model.hh"
 #include "skybox.hh"
 #include "ambient_occlusion.hh"
+#include "boids.hh"
 
 class AmbientOcclusion;
 
@@ -24,6 +25,7 @@ public:
     ~Deferred();
     void update_viewport();
     void gbuffer_render(std::vector<std::shared_ptr<Model>> models);
+    void gbuffer_render(std::vector<std::shared_ptr<Model>> models, Boids &swarm);
 
     void render();
     void render_screen_quad();

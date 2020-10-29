@@ -16,6 +16,7 @@
 class Model
 {
 public:
+    Model(std::string path, std::shared_ptr<Material> mat);
     Model(std::string path, mat4 &model, std::shared_ptr<Material> mat);
     Model(std::string path, std::shared_ptr<Material> mat, vec3 translation, vec3 rotation, vec3 scale, float degree);
 
