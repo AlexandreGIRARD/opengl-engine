@@ -17,6 +17,7 @@ public:
     Boids()
     {}
     Boids(int size, float speed, float separation, float alignment, float cohesion, shared_model model);
+    void update();
     void draw(program p);
 
 private:

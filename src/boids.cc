@@ -1,6 +1,8 @@
 #include "boids.hh"
 
 #include <random>
+#include <glm/gtx/vector_angle.hpp>
+
 
 Boids::Boids(int size, float speed, float separation, float alignment, float cohesion, shared_model model)
     : _size(size)
@@ -24,14 +26,34 @@ Boids::Boids(int size, float speed, float separation, float alignment, float coh
     }
 }
 
+void Boids::update()
+{
+    for (int i = 0; i < _size; i++)
+    {
+        for (int j = 0; j < _size; j++)
+        {
+            if (i == j)
+                continue;
+
+        }
+        boids[i].pos += _speed * boids[i].dir;
+    }
+}
+
 
 void Boids::draw(program p)
 {
     for (int i = 0; i < _size; i++)
     {
+        // Generate translation matrix
         mat4 trans_mat = translate(mat4(1.0), boids[i].pos);
-        mat4 rotat_mat = lookAt(boids[i].pos, boids[i].pos + boids[i].dir, vec3(0, 1, 0));
-        // rotat_mat = mat4(1.0);
+
+        // Generate rotatation matrix from ogirin firection (1,0,0) and dir vector
+        float angle = glm::angle(vec3(1,0,0), boids[i].dir);
+        vec3 axis = cross(vec3(1,0,0), boids[i].dir);
+        mat4 rotat_mat = rotate(mat4(1.0), angle, axis);
+
+        // Compute model matrix from M=T*R
         mat4 model_mat = trans_mat * rotat_mat;
         _model->set_model(model_mat);
         _model->draw(p);
