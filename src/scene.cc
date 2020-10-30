@@ -134,6 +134,7 @@ void Scene::render(GLFWwindow *window, float delta, float xpos, float ypos)
     /*
        HANDLE ANIMATION FOR MODELS HERE
        */
+     _swarm.update();
 
     // First pass deferred rendering --> fill G_BUFFER
     _deferred.update_viewport();
