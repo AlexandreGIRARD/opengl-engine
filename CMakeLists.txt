@@ -29,6 +29,7 @@ add_executable(engine
     src/skybox.cc
     src/scene.cc
     src/ambient_occlusion.cc
+    src/boids.cc
     )
 
 target_link_libraries(engine glfw OpenGL::GL X11 pthread Xrandr Xi dl assimp)

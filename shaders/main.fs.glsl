@@ -1,6 +1,6 @@
 #version 450 core
 
-#define NB_PTS_LIGHTS 2
+#define NB_PTS_LIGHTS 1
 #define BIAS 0.001
 
 struct point_light
@@ -41,6 +41,9 @@ struct deferred_info
 
 in vec2 frag_uv;
 
+uniform mat4 inverse_view;
+uniform mat4 view;
+
 uniform uint shadow;
 uniform vec3 cam_pos;
 uniform point_light lights[NB_PTS_LIGHTS];
@@ -58,11 +61,22 @@ const mat4 bias_matrix = mat4(vec4(0.5, 0.0, 0.0, 0.0),
 
 out vec4 color;
 
+vec3 to_view_space(vec3 v)
+{
+    return vec3(view * vec4(v, 1.0));
+}
+
+vec3 to_world_space(vec3 v)
+{
+    return vec3(inverse_view * vec4(v, 1.0));
+}
+
 /*
  * Compute shadow coef for the given light
 */
 float point_shadow_coef(point_light light, vec3 pos, vec3 light_vect)
 {
+    // float d_receiver = length(to_world_space(pos) - light.pos);
     float d_receiver = length(pos - light.pos);
     float d_blocker = texture(light.map, -light_vect).r;
     // In light
@@ -103,10 +117,12 @@ vec3 get_sun_light(sun_light light, deferred_info infos, vec3 view_vect, vec4 sh
     vec3 ambient = 0.1 * infos.color;
 
     // Diffuse
+    // float diff_coef = max(dot(to_view_space(light.vect), infos.normal), 0.0);
     float diff_coef = max(dot(light.vect, infos.normal), 0.0);
     vec3 diffuse = infos.color * diff_coef;
 
     // Specular
+    // vec3 half_vect = normalize(to_view_space(light.vect) + view_vect);
     vec3 half_vect = normalize(light.vect + view_vect);
     float spec_coef = pow(max(dot(infos.normal, half_vect), 0), infos.shininess * 128);
     vec3 spec = infos.spec * spec_coef;
@@ -119,6 +135,7 @@ vec3 get_sun_light(sun_light light, deferred_info infos, vec3 view_vect, vec4 sh
 */
 vec3 get_light(point_light light, deferred_info infos, vec3 view_vect)
 {
+    // vec3 light_vect = normalize(to_view_space(light.pos) - infos.pos);
     vec3 light_vect = normalize(light.pos - infos.pos);
     float shadow = point_shadow_coef(light, infos.pos,  light_vect);
     // Ambient
@@ -152,15 +169,16 @@ void main()
 
     // Shadow uv computation for sun shadow
 
-    mat4 light_matrix = sun_projection * sun_view;
+    mat4 light_matrix = sun_projection * sun_view;// * inverse_view;
     vec4 shadow_uv = bias_matrix*light_matrix * vec4(infos.pos, 1.0);
 
     vec3 view_vect = normalize(cam_pos - infos.pos);
+    // vec3 view_vect = normalize(-infos.pos);
 
     vec3 final_color = get_sun_light(sun, infos, view_vect, shadow_uv);
     for (int i = 0; i < NB_PTS_LIGHTS; i++)
         final_color += get_light(lights[i], infos, view_vect);
 
 
-    color = infos.occlusion * vec4(final_color, gl_FragCoord.z);
+    color = vec4(final_color, gl_FragCoord.z);
 }
