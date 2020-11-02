@@ -24,50 +24,87 @@ Boids::Boids(int size, float speed, float separation, float alignment, float coh
     for (int i = 0; i < _size; i++)
     {
         _swarm[i].pos = vec3(dis_bound(gen), dis_bound(gen), dis_bound(gen));
-        _swarm[i].dir = normalize(vec3(dis(gen), dis(gen), dis(gen)));
+        _swarm[i].dir = 0.1f * normalize(vec3(dis(gen), dis(gen), dis(gen)));
     }
 }
+
+// void Boids::check_bound(int i)
+// {
+//     vec3 normal = vec3(0.f);
+//     if (_swarm[i].pos.x >= 10.f)
+//         normal = vec3(-1.f, 0.f, 0.f);
+//     if (_swarm[i].pos.x <= -10.f)
+//         normal = vec3(1.f, 0.f, 0.f);
+//     if (_swarm[i].pos.y >= 10.f)
+//         normal = vec3(0.f, -1.f, 0.f);
+//     if (_swarm[i].pos.y <= -10.f)
+//         normal = vec3(0.f, 1.f, 0.f);
+//     if (_swarm[i].pos.z >= 10.f)
+//         normal = vec3(0.f, 0.f, -1.f);
+//     if (_swarm[i].pos.z <= -10.f)
+//         normal = vec3(0.f, 0.f, 1.f);
+//     if (normal != vec3(0.f))
+//     {
+//         _swarm[i].dir = reflect(_swarm[i].dir, normal);
+//         float d = 0.3 - dot(_swarm[i].pos +10.f * normal, normal);
+//         _swarm[i].pos += d* normal;
+//     }
+// }
 
 void Boids::check_bound(int i)
 {
-    vec3 normal = vec3(0.f);
-    if (_swarm[i].pos.x >= 10.f)
-        normal = vec3(-1.f, 0.f, 0.f);
-    if (_swarm[i].pos.x <= -10.f)
-        normal = vec3(1.f, 0.f, 0.f);
-    if (_swarm[i].pos.y >= 10.f)
-        normal = vec3(0.f, -1.f, 0.f);
-    if (_swarm[i].pos.y <= -10.f)
-        normal = vec3(0.f, 1.f, 0.f);
-    if (_swarm[i].pos.z >= 10.f)
-        normal = vec3(0.f, 0.f, -1.f);
-    if (_swarm[i].pos.z <= -10.f)
-        normal = vec3(0.f, 0.f, 1.f);
-    if (normal != vec3(0.f))
-    {
-        _swarm[i].dir = reflect(_swarm[i].dir, normal);
-        float d = 0.3 - dot(_swarm[i].pos +10.f * normal, normal);
-        _swarm[i].pos += d* normal;
-    }
+    vec3 center_sphere = vec3(0.f);
+    if (distance(_swarm[i].pos, center_sphere) < 10.f)
+        return;
+    vec3 normal = normalize(center_sphere - _swarm[i].pos);
+    vec3 direction =  _swarm[i].dir - dot(_swarm[i].dir, normal) * normal;
+    vec3 friction =  dot(_swarm[i].dir, normal) * normal;
+    // _swarm[i].dir = normalize(0.75f * direction - 0.0f * friction);
+    _swarm[i].dir = reflect(_swarm[i].dir, normal);
+    while(distance(_swarm[i].pos, center_sphere) >= 10.f)
+        _swarm[i].pos += 0.05f*normal;
 }
 
-vec3 Boids::get_align_vect(swarm &local_swarm)
+// Align boids with neighbors
+void Boids::align_boid(int i, swarm &local_swarm)
 {
-    vec3 vect = vec3(0.f);
+    const float align_factor = 0.05f;
+    vec3 align = vec3(0.f);
     for (auto boid : local_swarm)
-        vect += boid.dir;
+        align += boid.dir;
     if (local_swarm.size())
-        vect /= local_swarm.size();
-    return vect;
+        align /= local_swarm.size();
+    _swarm[i].dir += (align - _swarm[i].dir) * align_factor;
 }
-vec3 Boids::get_center_swarm(swarm &local_swarm)
+
+// Center boids with neighbors
+void Boids::center_boid(int i, swarm &local_swarm)
 {
-    vec3 vect = vec3(0.f);
+    const float center_factor = 0.005f;
+    vec3 center = vec3(0.f);
     for (auto boid : local_swarm)
-        vect += boid.pos;
+        center += boid.pos;
     if (local_swarm.size())
-        vect /= local_swarm.size();
-    return vect;
+        center /= local_swarm.size();
+    _swarm[i].dir += (center - _swarm[i].pos) * center_factor;
+}
+
+// Separe current boid from others
+void Boids::separe_boid(int i, swarm &local_swarm)
+{
+    const float avoid_factor = 0.05f;
+    vec3 move = vec3(0.f);
+    for (auto boid : local_swarm)
+        move += _swarm[i].pos - boid.pos;
+    _swarm[i].dir += move * avoid_factor;
+}
+
+void Boids::clamp_speed(int i)
+{
+    const float speed_max = 0.1f; // TODO: parse in init
+    const float speed = length(_swarm[i].dir);
+    if (speed >= speed_max)
+        _swarm[i].dir = (_swarm[i].dir / speed) * speed_max;
 }
 
 void Boids::update()
@@ -87,24 +124,19 @@ void Boids::update()
             float dist = distance(_swarm[i].pos, _swarm[j].pos);
             if (dist <= _separation)
                 separation_swarm.emplace_back(_swarm[j]);
-            else if (dist <= _alignment)
+            if (dist <= _alignment)
                 alignment_swarm.emplace_back(_swarm[j]);
-            else if (dist <= _cohesion)
+            if (dist <= _cohesion)
                 cohesion_swarm.emplace_back(_swarm[j]);
         }
 
-        vec3 separation_vect = -get_center_swarm(separation_swarm);
-        if (separation_vect != vec3(0, 0, 0))
-            separation_vect = 0.06f * normalize(_swarm[i].pos - separation_vect);
+        center_boid(i, cohesion_swarm);
+        align_boid(i, alignment_swarm);
+        separe_boid(i, separation_swarm);
+        clamp_speed(i);
 
-        vec3 alignment_vect = normalize(_swarm[i].dir + get_align_vect(alignment_swarm));
-
-        vec3 cohesion_vect = get_center_swarm(cohesion_swarm);
-        if (cohesion_vect != vec3(0, 0, 0))
-            cohesion_vect = 0.04f * normalize(cohesion_vect - _swarm[i].pos);
-
-        _swarm[i].dir = normalize(separation_vect + alignment_vect + cohesion_vect);
-        _swarm[i].pos += _speed * _swarm[i].dir;
+        // _swarm[i].dir = normalize(separation_vect + alignment_vect + cohesion_vect);
+        _swarm[i].pos += _swarm[i].dir;
         check_bound(i);
     }
 }
@@ -118,8 +150,9 @@ void Boids::draw(program p)
         mat4 trans_mat = translate(mat4(1.0), _swarm[i].pos);
 
         // Generate rotatation matrix from ogirin firection (1,0,0) and dir vector
-        float angle = glm::angle(vec3(0,0,1), _swarm[i].dir);
-        vec3 axis = cross(vec3(0,0,1), _swarm[i].dir);
+        vec3 normal_dir = normalize(_swarm[i].dir);
+        float angle = glm::angle(vec3(0,0,1), normal_dir);
+        vec3 axis = cross(vec3(0,0,1), normal_dir);
         mat4 rotat_mat = rotate(mat4(1.0), angle, axis);
 
         // Compute model matrix from M=T*R

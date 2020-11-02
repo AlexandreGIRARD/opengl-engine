@@ -20,8 +20,10 @@ public:
     {}
     Boids(int size, float speed, float separation, float alignment, float cohesion, shared_model model);
     void check_bound(int i);
-    vec3 get_align_vect(swarm &local_swarm);
-    vec3 get_center_swarm(swarm &local_swarm);
+    void align_boid(int i, swarm &local_swarm);
+    void center_boid(int i, swarm &local_swarm);
+    void separe_boid(int i, swarm &local_swarm);
+    void clamp_speed(int i);
     void update();
     void draw(program p);
 
