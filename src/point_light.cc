@@ -56,7 +56,7 @@ void PointLight::set_views()
 {
     _views.emplace_back(lookAt(_pos, _pos + vec3(1 , 0, 0), vec3(0, -1, 0)));
     _views.emplace_back(lookAt(_pos, _pos + vec3(-1, 0, 0), vec3(0, -1, 0)));
-    _views.emplace_back(lookAt(_pos, _pos + vec3(0 , 1, 0), vec3(0, 0, -1)));
+    _views.emplace_back(lookAt(_pos, _pos + vec3(0 , 1, 0), vec3(0, 0,  1)));
     _views.emplace_back(lookAt(_pos, _pos + vec3(0 ,-1, 0), vec3(0, 0, -1)));
     _views.emplace_back(lookAt(_pos, _pos + vec3(0 , 0, 1), vec3(0, -1, 0)));
     _views.emplace_back(lookAt(_pos, _pos + vec3(0 , 0,-1), vec3(0, -1, 0)));
@@ -99,7 +99,7 @@ void PointLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void PointLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models, Boids &swarm)
+void PointLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models, shared_swarms &swarms)
 {
     glViewport(0,0,2048,2048);
     _program.use();
@@ -114,7 +114,8 @@ void PointLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models, Boi
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     for (auto model : models)
         model->draw(_program);
-    swarm.draw(_program);
+    for (auto swarm : swarms)
+        swarm->draw(_program);
 
     glCullFace(GL_BACK);
     glClearColor(0, 0, 0, 0);

@@ -85,7 +85,7 @@ void DirectionalLight::draw_shadow_map(shared_models models)
     glCullFace(GL_BACK);
 }
 
-void DirectionalLight::draw_shadow_map(shared_models models, Boids &swarm)
+void DirectionalLight::draw_shadow_map(shared_models models, shared_swarms &swarms)
 {
     _program.use();
     glCullFace(GL_FRONT);
@@ -96,7 +96,8 @@ void DirectionalLight::draw_shadow_map(shared_models models, Boids &swarm)
 
     for (auto model : models)
         model->draw(_program);
-    swarm.draw(_program);
+    for (auto swarm : swarms)
+        swarm->draw(_program);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glCullFace(GL_BACK);

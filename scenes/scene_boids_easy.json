@@ -1,0 +1,108 @@
+{
+    "height": 1080,
+    "width": 1920,
+    "camera": {
+        "position": [0,5,-10],
+        "forward": [1,0,0],
+        "up": [0,1,0],
+        "fov": 90,
+        "speed": 5,
+        "near": 0.1,
+        "far": 40
+    },
+    "skybox": "textures/skybox/skybox",
+    "sun": {
+        "vect": [0,0.5,-1],
+        "color": [1,1,1],
+        "intensity": 1
+    },
+    "lights": [
+        {
+            "pos": [0,5,3],
+            "color": [1,1,1],
+            "intensity": 1
+        }
+    ],
+    "materials": [
+        {
+            "type": "normal",
+            "name": "gray",
+            "diffuse": [0.4,0.4,0.4],
+            "specular": [0.7,0.7,0.7],
+            "shininess": 0.25
+        },
+        {
+            "type": "normal",
+            "name": "black",
+            "diffuse": [0,0,0],
+            "specular": [0.7,0.7,0.7],
+            "shininess": 0.25
+        },
+        {
+            "type": "normal",
+            "name": "red",
+            "diffuse": [1,0,0],
+            "specular": [0.7,0.7,0.7],
+            "shininess": 0.25
+        },
+        {
+            "type": "normal",
+            "name": "green",
+            "diffuse": [0,1,0],
+            "specular": [0.7,0.7,0.7],
+            "shininess": 0.25
+        }
+    ],
+    "boids":[
+        {
+            "size": 50,
+            "speed": 0.1,
+            "fov": 80,
+            "separation": 0.5,
+            "alignment": 1,
+            "cohesion": 1.5,
+            "model": {
+                "path": "models/boid.obj",
+                "material_id": 1,
+                "translation": [0,0,0],
+                "rotation": [1,0,0],
+                "degree": 90.0,
+                "scale": [0.5,0.5,0.5]
+            }
+        }
+    ],
+    "models": [
+        {
+            "path": "models/wall.obj",
+            "material_id": 0,
+            "translation": [0, -10, 0],
+            "degree": 0,
+            "rotation": [0, 1, 0],
+            "scale": [10, 10, 10]
+        },
+        {
+            "path": "models/wall.obj",
+            "material_id": 0,
+            "translation": [0, 0, 10],
+            "degree": -90,
+            "rotation": [1, 0, 0],
+            "scale": [10, 10, 10]
+        },
+        {
+            "path": "models/wall.obj",
+            "material_id": 0,
+            "translation": [-10, 0, 0],
+            "degree": -90,
+            "rotation": [0, 0, 1],
+            "scale": [10, 10, 10]
+        },
+        {
+            "path": "models/wall.obj",
+            "material_id": 0,
+            "translation": [10, 0, 0],
+            "degree": 90,
+            "rotation": [0, 0, 1],
+            "scale": [10, 10, 10]
+        }
+    ]
+}

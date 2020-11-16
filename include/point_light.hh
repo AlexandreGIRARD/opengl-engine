@@ -8,7 +8,7 @@ public:
     PointLight(vec3 pos, vec3 color, float intensity);
     uint set_shadow_framebuffer() override;
     void draw_shadow_map(shared_models models) override;
-    void draw_shadow_map(shared_models models, Boids &swarm) override;
+    void draw_shadow_map(shared_models models, shared_swarms &swarm) override;
     void set_light_in_program(program p) override;
     void setup_program();
     void set_shadow_cube(program p);

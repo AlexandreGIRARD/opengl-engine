@@ -10,7 +10,7 @@ public:
     DirectionalLight(vec3 vect, vec3 color, float intensity);
     uint set_shadow_framebuffer() override;
     void draw_shadow_map(shared_models models) override;
-    void draw_shadow_map(shared_models models, Boids &swarm) override;
+    void draw_shadow_map(shared_models models, shared_swarms &swarm) override;
     void update_position(vec3 cam_pos);
     void set_light_in_program(program p) override;
     void set_shadow_map(program p);

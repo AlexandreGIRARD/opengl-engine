@@ -175,7 +175,8 @@ void main()
     vec3 view_vect = normalize(cam_pos - infos.pos);
     // vec3 view_vect = normalize(-infos.pos);
 
-    vec3 final_color = get_sun_light(sun, infos, view_vect, shadow_uv);
+    // vec3 final_color = get_sun_light(sun, infos, view_vect, shadow_uv);
+    vec3 final_color = vec3(0);
     for (int i = 0; i < NB_PTS_LIGHTS; i++)
         final_color += get_light(lights[i], infos, view_vect);
 

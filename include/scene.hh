@@ -19,6 +19,8 @@ using shared_camera = std::shared_ptr<Camera>;
 using shared_lights = std::vector<std::shared_ptr<PointLight>>;
 using shared_materials = std::vector<std::shared_ptr<Material>>;
 using shared_models = std::vector<std::shared_ptr<Model>>;
+using shared_swarms = std::vector<std::shared_ptr<Boids>>;
+
 
 class Scene
 {
@@ -30,6 +32,7 @@ public:
     void add_textured_material(nlohmann::json &j);
     void add_normal_material(nlohmann::json &j);
     void add_model(nlohmann::json &j);
+    void add_swarm(nlohmann::json &j);
 
     void render(GLFWwindow *window, float delta, float xpos, float ypos);
 
@@ -43,5 +46,5 @@ private:
     shared_lights _lights;
     shared_materials _materials;
     shared_models _models;
-    Boids _swarm;
+    shared_swarms _swarms;
 };
