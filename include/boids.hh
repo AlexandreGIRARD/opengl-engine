@@ -25,6 +25,7 @@ public:
     void separe_boid(int i, swarm &local_swarm);
     void clamp_speed(int i);
     bool in_field_of_view(boid_t &b1, boid_t &b2);
+    void update_ui();
     void update(std::vector<std::shared_ptr<Boids>> swarms);
     void draw(program p);
 
@@ -32,9 +33,13 @@ private:
     static int _nb_swarms;
     int _id;
     int _size;
+    float _fov;
     float _speed;
     float _angle;
     float _separation, _alignment, _cohesion;
+    float _separation_factor = 0.05f;
+    float _align_factor = 0.05f;
+    float _cohesion_factor = 0.005f;
     std::vector<boid_t> _swarm;
     shared_model _model;
 };

@@ -2,6 +2,9 @@
 
 #include <random>
 #include <glm/gtx/vector_angle.hpp>
+#include "imgui.h"
+#include "imgui_impl_glfw.h"
+#include "imgui_impl_opengl3.h"
 
 #include <iostream>
 
@@ -9,6 +12,7 @@ int Boids::_nb_swarms = 0;
 
 Boids::Boids(int size, float speed, float fov, float separation, float alignment, float cohesion, shared_model model)
     : _size(size)
+    , _fov(fov)
     , _speed(speed)
     , _angle(radians(fov))
     , _separation(separation)
@@ -32,29 +36,6 @@ Boids::Boids(int size, float speed, float fov, float separation, float alignment
     }
 }
 
-// void Boids::check_bound(int i)
-// {
-//     vec3 normal = vec3(0.f);
-//     if (_swarm[i].pos.x >= 10.f)
-//         normal = vec3(-1.f, 0.f, 0.f);
-//     if (_swarm[i].pos.x <= -10.f)
-//         normal = vec3(1.f, 0.f, 0.f);
-//     if (_swarm[i].pos.y >= 10.f)
-//         normal = vec3(0.f, -1.f, 0.f);
-//     if (_swarm[i].pos.y <= -10.f)
-//         normal = vec3(0.f, 1.f, 0.f);
-//     if (_swarm[i].pos.z >= 10.f)
-//         normal = vec3(0.f, 0.f, -1.f);
-//     if (_swarm[i].pos.z <= -10.f)
-//         normal = vec3(0.f, 0.f, 1.f);
-//     if (normal != vec3(0.f))
-//     {
-//         _swarm[i].dir = reflect(_swarm[i].dir, normal);
-//         float d = 0.3 - dot(_swarm[i].pos +10.f * normal, normal);
-//         _swarm[i].pos += d* normal;
-//     }
-// }
-
 void Boids::check_bound(int i)
 {
     vec3 center_sphere = vec3(0.f);
@@ -72,37 +53,34 @@ void Boids::check_bound(int i)
 // Align boids with neighbors
 void Boids::align_boid(int i, swarm &local_swarm)
 {
-    const float align_factor = 0.05f;
     vec3 align = vec3(0.f);
     for (auto boid : local_swarm)
         align += boid.dir;
     if (local_swarm.size())
         align /= local_swarm.size();
-    _swarm[i].dir += (align) * align_factor;
+    _swarm[i].dir += (align) * _align_factor;
 }
 
 // Center boids with neighbors
 void Boids::center_boid(int i, swarm &local_swarm)
 {
-    const float center_factor = 0.005f;
     vec3 center = vec3(0.f);
     for (auto boid : local_swarm)
         center += boid.pos;
     if (local_swarm.size())
         center /= local_swarm.size();
-    _swarm[i].dir += (center - _swarm[i].pos) * center_factor;
+    _swarm[i].dir += (center - _swarm[i].pos) * _cohesion_factor;
 }
 
 // Separe current boid from others
 void Boids::separe_boid(int i, swarm &local_swarm)
 {
-    const float avoid_factor = 0.05f;
     vec3 move = vec3(0.f);
     for (auto boid : local_swarm)
         move += _swarm[i].pos - boid.pos;
     if (local_swarm.size())
         move /= local_swarm.size();
-    _swarm[i].dir += move * avoid_factor;
+    _swarm[i].dir += move * _separation_factor;
 }
 
 void Boids::clamp_speed(int i)
@@ -116,30 +94,47 @@ bool Boids::in_field_of_view(boid_t &b1, boid_t &b2)
 {
     vec3 b1_view = normalize(b1.dir);
     vec3 b1_to_b2 = normalize(b2.pos - b1.pos);
-    return glm::angle(b1_view, b1_to_b2) <= _angle;
+    return glm::angle(b1_to_b2, b1_view) <= _angle;
+}
+
+void Boids::update_ui()
+{
+    const auto title = ("Swarm " + std::to_string(_id)).c_str();
+    ImGui::Begin(title);
+    ImGui::SliderFloat("Speed max", &_speed, 0.0f, 0.2f);
+    ImGui::SliderFloat("Fov", &_fov, 0.f, 180.f);
+    ImGui::SliderFloat("Separation Distance", &_separation, 0.0f, 5.0f);
+    ImGui::SliderFloat("Separation Factor", &_separation_factor, 0.01f, 0.1f);
+    ImGui::SliderFloat("Alignement Distance", &_alignment , 0.0f, 5.0f);
+    ImGui::SliderFloat("Alignement Factor", &_align_factor, 0.01f, 0.1f);
+    ImGui::SliderFloat("Cohesion Distance"  , &_cohesion  , 0.0f, 5.0f);
+    ImGui::SliderFloat("Cohesion Factor", &_cohesion_factor, 0.001f, 0.01f);
+    ImGui::End();
+    _angle = radians(_fov);
 }
 
 void Boids::update(std::vector<std::shared_ptr<Boids>> swarms)
 {
+    update_ui();
+
     for (int i = 0; i < _size; i++)
     {
-        // for (auto swarm : swarms)
-        // {
-        //     if (swarm->_id == _id)
-        //         break;
-        //     auto separation_swarm = std::vector<boid_t>();
-        //     for (int j = 0; j < _size; j++)
-        //     {
-        //         float dist = distance(_swarm[i].pos, swarm->_swarm[j].pos);
-        //         if (in_field_of_view(_swarm[i], swarm->_swarm[j]) && dist <= _separation)
-        //             separation_swarm.emplace_back(swarm->_swarm[j]);
-        //     }
-        //     separe_boid(i, separation_swarm);
-        //     clamp_speed(i);
-        //     // _swarm[i].dir = normalize(separation_vect + alignment_vect + cohesion_vect);
-        //     _swarm[i].pos += _swarm[i].dir;
-        //     check_bound(i);
-        // }
+        for (auto swarm : swarms)
+        {
+            if (swarm->_id == _id)
+                continue;
+            auto separation_swarm = std::vector<boid_t>();
+            for (int j = 0; j < _size; j++)
+            {
+                float dist = distance(_swarm[i].pos, swarm->_swarm[j].pos);
+                if (in_field_of_view(_swarm[i], swarm->_swarm[j]) && dist <= _separation)
+                    separation_swarm.emplace_back(swarm->_swarm[j]);
+            }
+            separe_boid(i, separation_swarm);
+            clamp_speed(i);
+            _swarm[i].pos += _swarm[i].dir;
+            check_bound(i);
+        }
 
         auto separation_swarm = std::vector<boid_t>();
         auto alignment_swarm = std::vector<boid_t>();
@@ -165,9 +160,7 @@ void Boids::update(std::vector<std::shared_ptr<Boids>> swarms)
         separe_boid(i, separation_swarm);
         clamp_speed(i);
 
-        // _swarm[i].dir = normalize(separation_vect + alignment_vect + cohesion_vect);
         _swarm[i].pos += _swarm[i].dir;
-        // _swarm[i].pos += _speed*normalize(_swarm[i].dir);
         check_bound(i);
     }
 }

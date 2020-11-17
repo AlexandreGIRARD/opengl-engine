@@ -60,12 +60,12 @@
     ],
     "boids":[
         {
-            "size": 50,
+            "size": 100,
             "speed": 0.05,
-            "fov": 45,
-            "separation": 1,
-            "alignment": 2,
-            "cohesion": 2.5,
+            "fov": 80,
+            "separation": 0.5,
+            "alignment": 0.75,
+            "cohesion": 1,
             "model": {
                 "path": "models/boid.obj",
                 "material_id": 1,
@@ -76,12 +76,12 @@
             }
         },
         {
-            "size": 50,
+            "size": 100,
             "speed": 0.05,
-            "fov": 90,
-            "separation": 1,
-            "alignment": 2,
-            "cohesion": 2.5,
+            "fov": 120,
+            "separation": 0.5,
+            "alignment": 1,
+            "cohesion": 1.5,
             "model": {
                 "path": "models/boid.obj",
                 "material_id": 2,

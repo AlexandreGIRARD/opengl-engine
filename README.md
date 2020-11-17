@@ -14,10 +14,10 @@ It is implemented using OpenGL 4.5 and C++.
     - Tessellation of water surface
     - Changes following sin for waves simulating
 - Deferred Shading
+- Boids Simulation
 
 ### To Implement
-- Ambient Occlusion
-- Point shadow mapping using geometry shader
+- Ambient Occlusion (soon)
 - Bloom
 - Learn about Scene Graph
 - Motion Blur ?
@@ -30,7 +30,7 @@ It is implemented using OpenGL 4.5 and C++.
 ```
 ```sh
 # Run
-./engine
+./engine [your-scene.json]
 ```
 
 ## Libraries
@@ -46,4 +46,4 @@ In order to use this project you must install GLFW and Assimp on your computer.
 
 ## Results
 
-[![IMAGE ALT TEXT HERE](textures/github.gif)](https://www.youtube.com/watch?v=JS43Ozl9Hzw)
+[![IMAGE ALT TEXT HERE](textures/boids.gif)](https://www.youtube.com/watch?v=JS43Ozl9Hzw)

@@ -30,6 +30,12 @@ add_executable(engine
     src/scene.cc
     src/ambient_occlusion.cc
     src/boids.cc
+    src/imgui/imgui.cpp
+    src/imgui/imgui_demo.cpp
+    src/imgui/imgui_draw.cpp
+    src/imgui/imgui_widgets.cpp
+    src/imgui/imgui_impl_opengl3.cpp
+    src/imgui/imgui_impl_glfw.cpp
     )
-
-target_link_libraries(engine glfw OpenGL::GL X11 pthread Xrandr Xi dl assimp)
+target_compile_definitions(engine PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
+target_link_libraries(engine glfw OpenGL::GL dl assimp)

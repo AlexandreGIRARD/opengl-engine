@@ -55,15 +55,15 @@
     ],
     "boids":[
         {
-            "size": 50,
+            "size": 200,
             "speed": 0.1,
             "fov": 80,
             "separation": 0.5,
-            "alignment": 1,
+            "alignment": 3,
             "cohesion": 1.5,
             "model": {
                 "path": "models/boid.obj",
-                "material_id": 1,
+                "material_id": 3,
                 "translation": [0,0,0],
                 "rotation": [1,0,0],
                 "degree": 90.0,

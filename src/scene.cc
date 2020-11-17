@@ -167,5 +167,4 @@ void Scene::render(GLFWwindow *window, float delta, float xpos, float ypos)
     // water.render(models, cam, deferred, skybox);
 
 
-
 }
