@@ -22,8 +22,6 @@ public:
     Light(vec3 color, float intensity);
     virtual uint set_shadow_framebuffer() = 0;
     virtual void draw_shadow_map(shared_models models) = 0;
-    virtual void draw_shadow_map(shared_models models, shared_swarms &swarm) = 0;
-    // virtual void setup_program(vec3 direction, vec3 optional_pos) = 0;
     virtual void set_light_in_program(program p) = 0;
 
     uint get_light_id();

@@ -63,11 +63,7 @@
             "cohesion": 1.5,
             "model": {
                 "path": "models/boid.obj",
-                "material_id": 3,
-                "translation": [0,0,0],
-                "rotation": [1,0,0],
-                "degree": 90.0,
-                "scale": [0.5,0.5,0.5]
+                "material_id": 3
             }
         }
     ],

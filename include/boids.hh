@@ -13,12 +13,11 @@ using shared_model = std::shared_ptr<Model>;
 using swarm = std::vector<boid_t>;
 
 
-class Boids
+class Boids : public Model
 {
 public:
-    Boids()
-    {}
-    Boids(int size, float speed, float fov, float separation, float alignment, float cohesion, shared_model model);
+    Boids(std::string path, std::shared_ptr<Material> mat,int size, float speed,
+        float fov, float separation, float alignment, float cohesion);
     void check_bound(int i);
     void align_boid(int i, swarm &local_swarm);
     void center_boid(int i, swarm &local_swarm);
@@ -27,7 +26,7 @@ public:
     bool in_field_of_view(boid_t &b1, boid_t &b2);
     void update_ui();
     void update(std::vector<std::shared_ptr<Boids>> swarms);
-    void draw(program p);
+    void draw(program &p) override;
 
 private:
     static int _nb_swarms;
@@ -41,5 +40,4 @@ private:
     float _align_factor = 0.05f;
     float _cohesion_factor = 0.005f;
     std::vector<boid_t> _swarm;
-    shared_model _model;
 };

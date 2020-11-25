@@ -10,9 +10,11 @@ find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 
 include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/imgui)
+include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/stb)
 
 add_executable(engine
-    main.cc
+    src/main.cc
     src/glad.c
     src/program.cc
     src/camera.cc

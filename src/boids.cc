@@ -10,15 +10,15 @@
 
 int Boids::_nb_swarms = 0;
 
-Boids::Boids(int size, float speed, float fov, float separation, float alignment, float cohesion, shared_model model)
-    : _size(size)
+Boids::Boids(std::string path, std::shared_ptr<Material> mat, int size, float speed, float fov, float separation, float alignment, float cohesion)
+    : Model(path, mat)
+    , _size(size)
     , _fov(fov)
     , _speed(speed)
     , _angle(radians(fov))
     , _separation(separation)
     , _alignment(alignment)
     , _cohesion(cohesion)
-    , _model(model)
 {
     _id = _nb_swarms++;
     std::cout << _id << std::endl;
@@ -166,13 +166,12 @@ void Boids::update(std::vector<std::shared_ptr<Boids>> swarms)
 }
 
 
-void Boids::draw(program p)
+void Boids::draw(program &p)
 {
     for (int i = 0; i < _size; i++)
     {
         // Generate translation matrix
         mat4 trans_mat = translate(mat4(1.0), _swarm[i].pos);
-
         // Generate rotatation matrix from ogirin firection (1,0,0) and dir vector
         vec3 normal_dir = normalize(_swarm[i].dir);
         float angle = glm::angle(vec3(0,0,1), normal_dir);
@@ -180,8 +179,10 @@ void Boids::draw(program p)
         mat4 rotat_mat = rotate(mat4(1.0), angle, axis);
 
         // Compute model matrix from M=T*R
-        mat4 model_mat = trans_mat * rotat_mat;
-        _model->set_model(model_mat);
-        _model->draw(p);
+        _model = trans_mat * rotat_mat;
+        _mat->set_uniforms(p);
+        p.addUniformMat4(_model, "model");
+        for (auto mesh : _meshes)
+            mesh.draw(p);
     }
 }

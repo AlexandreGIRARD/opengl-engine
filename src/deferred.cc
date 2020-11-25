@@ -138,21 +138,6 @@ void Deferred::gbuffer_render(std::vector<std::shared_ptr<Model>> models)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
-void Deferred::gbuffer_render(std::vector<std::shared_ptr<Model>> models, shared_swarms &swarms)
-{
-    _program.use();
-    glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    glDrawBuffers(4, buffer);
-
-    for (auto model : models)
-        model->draw(_program);
-    for (auto swarm : swarms)
-        swarm->draw(_program);
-
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
-}
-
 void Deferred::render()
 {
     // occlusion rendering
