@@ -23,6 +23,7 @@ in VS_OUT {
     mat3 TBN;
 } fs_in;
 
+uniform mat4 view;
 uniform uint id_model;
 uniform uint is_textured;
 uniform vec3 cam_pos;
@@ -81,6 +82,7 @@ void texture_component()
 {
     // Relief Mapping
     vec3 tangent_view = fs_in.TBN * normalize(cam_pos - fs_in.pos.xyz);
+    // vec3 tangent_view = fs_in.TBN * normalize(cam_pos - vec3(inverse(view) * fs_in.pos));
     vec2 ds = tangent_view.xy / tangent_view.z * SCALE;
     float depth = relief_mapping(fs_in.uv, ds);
     vec2 uv = fs_in.uv + ds * depth;
@@ -88,7 +90,7 @@ void texture_component()
 
     color = texture(tex.diffuse, uv).rgb;
     vec3 tmp_normal = texture(tex.normal, uv).rgb * 2.0 - 1.0;
-    tmp_normal = normalize(fs_in.TBN * tmp_normal);
+    tmp_normal = normalize(transpose(fs_in.TBN) * tmp_normal);
     normal = vec4(tmp_normal, 0.2);
     specular = vec3(0.4);
 }

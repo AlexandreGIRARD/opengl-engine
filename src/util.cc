@@ -182,6 +182,20 @@ void quit_window(GLFWwindow *window)
         glfwSetWindowShouldClose(window, true);
 }
 
+void move_window(GLFWwindow *window, double *xpos, double *ypos)
+{
+    if (glfwGetKey(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
+    {
+        std::cout << "Pute";
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+        glfwGetCursorPos(window, xpos, ypos);
+    }
+    if (glfwGetKey(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_RELEASE)
+    {
+        glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
+    }
+}
+
 float pause_rotation(GLFWwindow *window, float rad_off)
 {
     if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)

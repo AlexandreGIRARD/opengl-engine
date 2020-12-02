@@ -16,16 +16,17 @@
 class Model
 {
 public:
+    Model(std::string path, std::shared_ptr<Material> mat);
     Model(std::string path, mat4 &model, std::shared_ptr<Material> mat);
     Model(std::string path, std::shared_ptr<Material> mat, vec3 translation, vec3 rotation, vec3 scale, float degree);
 
-    void draw(program &p);
+    virtual void draw(program &p);
     void draw_patches(program &p);
     mat4 get_model();
     void set_model(mat4 &model);
     void compute_model();
 
-private:
+protected:
     void load_model(std::string path);
     void process_node(aiNode *node, const aiScene *scene);
     Mesh process_mesh(aiMesh *mesh, const aiScene *scene);

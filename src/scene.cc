@@ -68,12 +68,17 @@ void Scene::parse_json(nlohmann::json &j)
     for (auto j_model : j["models"])
         add_model(j_model);
 
+    // Setup boids
+    _swarms = shared_swarms();
+    for (auto j_boid : j["boids"])
+        add_swarm(j_boid);
+
     // Setup water
-    // model_trans = translate(model, vec3(0, -1, 0));
-    // model_scale = scale(model_trans, vec3(5, 5, 5));
-    // auto water_surface = Model("models/wave.obj", model_scale, mat2);
-    // Water water = Water(width, height, water_surface, -1);
-    // water.setup_program(sun, lights);
+    model_trans = translate(model, vec3(0, -1, 0));
+    model_scale = scale(model_trans, vec3(5, 5, 5));
+    auto water_surface = Model("models/wave.obj", model_scale, mat2);
+    Water water = Water(width, height, water_surface, -1);
+    water.setup_program(sun, lights);
 }
 
 void Scene::add_light(nlohmann::json &j)
@@ -113,6 +118,15 @@ void Scene::add_model(nlohmann::json &j)
 
 }
 
+void Scene::add_swarm(nlohmann::json &j)
+{
+    auto j_model = j["model"];
+    auto swarm = std::make_shared<Boids>(j_model["path"], _materials[j_model["material_id"]], j["size"], j["speed"],
+                                                 j["fov"], j["separation"], j["alignment"], j["cohesion"]);
+    _models.emplace_back(swarm);
+    _swarms.emplace_back(swarm);
+}
+
 
 void Scene::render(GLFWwindow *window, float delta, float xpos, float ypos)
 {
@@ -124,6 +138,8 @@ void Scene::render(GLFWwindow *window, float delta, float xpos, float ypos)
     /*
        HANDLE ANIMATION FOR MODELS HERE
        */
+     for (auto swarm : _swarms)
+        swarm->update(_swarms);
 
     // First pass deferred rendering --> fill G_BUFFER
     _deferred.update_viewport();
@@ -143,7 +159,6 @@ void Scene::render(GLFWwindow *window, float delta, float xpos, float ypos)
 
     // Water rendering
     // water.render(models, cam, deferred, skybox);
-
 
 
 }

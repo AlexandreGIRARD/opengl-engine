@@ -219,6 +219,7 @@ void Deferred::render_screen_quad()
 void Deferred::update_viewport()
 {
     mat4 view = _camera->look_at();
+    mat4 inverse_view = inverse(view);
     mat4 projection = _camera->get_projection();
     vec3 position = _camera->get_position();
     _program.use();
@@ -227,6 +228,8 @@ void Deferred::update_viewport()
     _program.addUniformVec3(position, "cam_pos");
     _final.use();
     _final.addUniformVec3(position, "cam_pos");
+    _final.addUniformMat4(inverse_view, "inverse_view");
+    _final.addUniformMat4(view, "view");
 }
 
 void Deferred::set_textures(program &p)

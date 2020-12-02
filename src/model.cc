@@ -6,6 +6,12 @@
 
 using namespace glm;
 
+Model::Model(std::string path, std::shared_ptr<Material> mat)
+{
+    load_model(path);
+    _mat = mat;
+}
+
 Model::Model(std::string path, mat4 &model, std::shared_ptr<Material> mat)
 {
     load_model(path);
@@ -106,8 +112,8 @@ void Model::set_model(mat4 &model)
 
 void Model::compute_model()
 {
-    mat4 tmp_model = mat4(1.0);
-    tmp_model = translate(tmp_model, _translation);
-    tmp_model = rotate(tmp_model, radians(_degree), _rotation);
-    _model = scale(tmp_model, _scale);
+    const mat4 trans_mat = translate(mat4(1.0), _translation);
+    const mat4 rotat_mat = rotate(mat4(1.0), radians(_degree), _rotation);
+    const mat4 scale_mat = scale(mat4(1.0), _scale);
+    _model = trans_mat * rotat_mat * scale_mat;
 }

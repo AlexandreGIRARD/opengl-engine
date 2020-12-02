@@ -69,7 +69,7 @@ void DirectionalLight::update_position(vec3 cam_pos)
     _program.addUniformMat4(_view, "view");
 }
 
-void DirectionalLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)
+void DirectionalLight::draw_shadow_map(shared_models models)
 {
     _program.use();
     glCullFace(GL_FRONT);
@@ -84,7 +84,6 @@ void DirectionalLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> model
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glCullFace(GL_BACK);
 }
-
 
 void DirectionalLight::set_light_in_program(program p)
 {

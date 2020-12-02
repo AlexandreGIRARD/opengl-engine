@@ -8,12 +8,13 @@
 #include "model.hh"
 #include "skybox.hh"
 #include "ambient_occlusion.hh"
+#include "boids.hh"
 
 class AmbientOcclusion;
 
 using shared_camera = std::shared_ptr<Camera>;
 using shared_occlusion = std::shared_ptr<AmbientOcclusion>;
-
+using shared_swarms = std::vector<std::shared_ptr<Boids>>;
 
 class Deferred
 {
@@ -24,6 +25,7 @@ public:
     ~Deferred();
     void update_viewport();
     void gbuffer_render(std::vector<std::shared_ptr<Model>> models);
+    void gbuffer_render(std::vector<std::shared_ptr<Model>> models, shared_swarms &swarm);
 
     void render();
     void render_screen_quad();

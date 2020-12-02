@@ -21,7 +21,10 @@ out VS_OUT {
 void main()
 {
     vs_out.pos = model * vec4(pos, 1.0);
-    vs_out.normal = normalize(mat3(transpose(inverse(model))) * normal);
+    // vs_out.pos = view*model * vec4(pos, 1.0);
+    mat4 normal_matrix = transpose(inverse(model));
+    // mat4 normal_matrix = transpose(inverse(view*model));
+    vs_out.normal = normalize(mat3(normal_matrix) * normal);
     vs_out.uv = uv;
 
     vec3 T = normalize(vec3(model * vec4(tangent, 0.0)));

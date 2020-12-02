@@ -10,9 +10,11 @@ find_package(glfw3 REQUIRED)
 find_package(OpenGL REQUIRED)
 
 include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include)
+include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/imgui)
+include_directories(engine PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/include/stb)
 
 add_executable(engine
-    main.cc
+    src/main.cc
     src/glad.c
     src/program.cc
     src/camera.cc
@@ -29,6 +31,13 @@ add_executable(engine
     src/skybox.cc
     src/scene.cc
     src/ambient_occlusion.cc
+    src/boids.cc
+    src/imgui/imgui.cpp
+    src/imgui/imgui_demo.cpp
+    src/imgui/imgui_draw.cpp
+    src/imgui/imgui_widgets.cpp
+    src/imgui/imgui_impl_opengl3.cpp
+    src/imgui/imgui_impl_glfw.cpp
     )
-
-target_link_libraries(engine glfw OpenGL::GL X11 pthread Xrandr Xi dl assimp)
+target_compile_definitions(engine PUBLIC IMGUI_IMPL_OPENGL_LOADER_GLAD)
+target_link_libraries(engine glfw OpenGL::GL dl assimp)
