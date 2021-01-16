@@ -1,6 +1,7 @@
 #include "boids.hh"
 
 #include <random>
+#include <cmath>
 #include <glm/gtx/vector_angle.hpp>
 #include "imgui.h"
 #include "imgui_impl_glfw.h"
@@ -29,11 +30,60 @@ Boids::Boids(std::string path, std::shared_ptr<Material> mat, int size, float sp
 
     // Initialize random boids
     _swarm = std::vector<boid_t>(size);
+    auto positions  = std::vector<vec4>(size);
+    auto directions = std::vector<vec4>(size);
     for (int i = 0; i < _size; i++)
     {
         _swarm[i].pos = vec3(dis_bound(gen), dis_bound(gen), dis_bound(gen));
+        // positions[i]  = vec4(dis_bound(gen), dis_bound(gen), dis_bound(gen), 0);
+        positions[i] = vec4(i,i,i,0);
         _swarm[i].dir = normalize(vec3(dis(gen), dis(gen), dis(gen)));
+        // directions[i] = normalize(vec4(dis(gen), dis(gen), dis(gen), 0));
+        directions[i] = vec4(i,i,i,0);
     }
+
+    //TODO: init boids draw program
+    // Create program for rendering reflection texture
+    _draw_program = program();
+    _draw_program.add_shader("boids/boids.vs.glsl", GL_VERTEX_SHADER);
+    _draw_program.add_shader("boids/boids.gs.glsl", GL_GEOMETRY_SHADER);
+    _draw_program.add_shader("boids/boids.fs.glsl", GL_FRAGMENT_SHADER);
+    _draw_program.link();
+
+    _comp_program = program();
+    _comp_program.add_shader("boids/boids.cs.glsl", GL_COMPUTE_SHADER);
+    _comp_program.link();
+
+    //TODO: Init SSBO boids
+    _comp_program.use();
+    glGenBuffers(1, &_pos_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, _pos_ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, _size * sizeof(vec4), positions.data(), GL_DYNAMIC_COPY);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, _pos_ssbo); // unbind
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+    glGenBuffers(1, &_dir_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, _dir_ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, _size * sizeof(vec4), directions.data(), GL_DYNAMIC_COPY);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 1, _dir_ssbo); // unbind
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+    glGenBuffers(1, &_mat_ssbo);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, _mat_ssbo);
+    glBufferData(GL_SHADER_STORAGE_BUFFER, _size * sizeof(mat4), NULL, GL_DYNAMIC_COPY);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 2, _mat_ssbo); // unbind
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
+
+    _comp_program.addUniformUint(_swarm.size(), "max_boids");
+
+    std::cout << _swarm[0].pos.x << " " << _swarm[0].pos.y << _swarm[0].pos.z << "\n" << _swarm[0].dir.x << " " << _swarm[0].dir.y << _swarm[0].dir.z << "\n";
+}
+
+void Boids::update() // GPU Version
+{
+    _comp_program.use();
+    glDispatchCompute(ceil(_swarm.size() / 1024.f), 1, 1);
+    glMemoryBarrier(GL_ALL_BARRIER_BITS);
 }
 
 void Boids::check_bound(int i)

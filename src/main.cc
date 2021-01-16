@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     if (argc < 2)
     {
         std::cerr << "Usage: ./engine <scene.json>" << std::endl;
-        exit(-1);
+        exit(1);
     }
 
     glfwInit();

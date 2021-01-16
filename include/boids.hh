@@ -25,11 +25,18 @@ public:
     void clamp_speed(int i);
     bool in_field_of_view(boid_t &b1, boid_t &b2);
     void update_ui();
+    void update();
     void update(std::vector<std::shared_ptr<Boids>> swarms);
     void draw(program &p) override;
 
 private:
     static int _nb_swarms;
+
+    program _draw_program;
+    program _comp_program;
+    uint _pos_ssbo;
+    uint _dir_ssbo;
+    uint _mat_ssbo;
     int _id;
     int _size;
     float _fov;
