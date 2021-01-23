@@ -8,7 +8,7 @@
         "fov": 90,
         "speed": 5,
         "near": 0.1,
-        "far": 40
+        "far": 60
     },
     "skybox": "textures/skybox/skybox",
     "sun": {
@@ -18,7 +18,7 @@
     },
     "lights": [
         {
-            "pos": [0,5,3],
+            "pos": [0,15,0],
             "color": [1,1,1],
             "intensity": 1
         }
@@ -51,54 +51,89 @@
             "diffuse": [0,1,0],
             "specular": [0.7,0.7,0.7],
             "shininess": 0.25
+        },
+        {
+            "type": "normal",
+            "name": "blue",
+            "diffuse": [0,0,1],
+            "specular": [0.7,0.7,0.7],
+            "shininess": 0.25
         }
     ],
     "boids":[
         {
-            "size": 200,
+            "size": 2000,
             "speed": 0.1,
             "fov": 80,
             "separation": 0.5,
-            "alignment": 3,
+            "alignment": 1,
             "cohesion": 1.5,
+            "separation_factor": 0.5,
+            "alignment_factor": 1,
+            "cohesion_factor": 1.5,
             "model": {
                 "path": "models/boid.obj",
                 "material_id": 3
-            }
+            },
+            "bound": 20
         }
     ],
     "models": [
         {
             "path": "models/wall.obj",
             "material_id": 0,
-            "translation": [0, -10, 0],
+            "translation": [0, -20, 0],
             "degree": 0,
             "rotation": [0, 1, 0],
-            "scale": [10, 10, 10]
+            "scale": [20, 20, 20]
         },
         {
             "path": "models/wall.obj",
             "material_id": 0,
-            "translation": [0, 0, 10],
+            "translation": [0, 0, 20],
             "degree": -90,
             "rotation": [1, 0, 0],
-            "scale": [10, 10, 10]
+            "scale": [20, 20, 20]
         },
         {
             "path": "models/wall.obj",
             "material_id": 0,
-            "translation": [-10, 0, 0],
+            "translation": [0, 0, -20],
+            "degree": 90,
+            "rotation": [1, 0, 0],
+            "scale": [20, 20, 20]
+        },
+        {
+            "path": "models/wall.obj",
+            "material_id": 0,
+            "translation": [-20, 0, 0],
             "degree": -90,
             "rotation": [0, 0, 1],
-            "scale": [10, 10, 10]
+            "scale": [20, 20, 20]
         },
         {
             "path": "models/wall.obj",
             "material_id": 0,
-            "translation": [10, 0, 0],
+            "translation": [20, 0, 0],
             "degree": 90,
             "rotation": [0, 0, 1],
-            "scale": [10, 10, 10]
+            "scale": [20, 20, 20]
+        },
+        {
+            "path": "models/cube.obj",
+            "material_id": 2,
+            "translation": [0,-4,4],
+            "rotation": [0,1,0],
+            "degree": 90.0,
+            "scale": [1,1,1]
+        },
+        {
+            "path": "models/cube.obj",
+            "material_id": 4,
+            "translation": [0,0,0],
+            "rotation": [0,1,0],
+            "degree": 90.0,
+            "scale": [1,1,1]
         }
     ]
 }

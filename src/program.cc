@@ -46,6 +46,27 @@ void program::add_shader(std::string path, int shader_type)
 void program::link()
 {
     glLinkProgram(_id_program);
+
+    GLint isLinked = 0;
+    glGetProgramiv(_id_program, GL_LINK_STATUS, &isLinked);
+    if (isLinked == GL_FALSE)
+    {
+        GLint maxLength = 0;
+        glGetProgramiv(_id_program, GL_INFO_LOG_LENGTH, &maxLength);
+
+        // The maxLength includes the NULL character
+        char *infoLog = (char*)std::malloc(maxLength+1);
+        glGetProgramInfoLog(_id_program, maxLength, &maxLength, infoLog);
+        std::cout << infoLog << std::endl;
+        std::free(infoLog);
+
+        // The program is useless now. So delete it.
+        glDeleteProgram(_id_program);
+
+        // Provide the infolog in whatever manner you deem best.
+        // Exit with failure.
+        exit(1);
+    }
 }
 
 void program::use()

@@ -21,9 +21,12 @@ public:
     Model(std::string path, std::shared_ptr<Material> mat, vec3 translation, vec3 rotation, vec3 scale, float degree);
 
     virtual void draw(program &p);
+    void draw_instances(program &p, int n);
     void draw_patches(program &p);
     mat4 get_model();
     void set_model(mat4 &model);
+    vec3 get_translation();
+    vec3 set_translation(vec3 &translation);
     void compute_model();
 
 protected:

@@ -49,8 +49,8 @@ int main(int argc, char *argv[])
     }
 
     // Debug
-    //glEnable(GL_DEBUG_OUTPUT);
-    //glDebugMessageCallback(debug_callback, 0);
+    // glEnable(GL_DEBUG_OUTPUT);
+    glDebugMessageCallback(debug_callback, 0);
 
     // Tell OpenGL window size
     glViewport(0, 0, width, height);

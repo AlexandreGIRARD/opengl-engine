@@ -69,27 +69,39 @@ void PointLight::setup_program()
     _program.add_shader("shadows/point_shadow.gs.glsl", GL_GEOMETRY_SHADER);
     _program.add_shader("shadows/point_shadow.fs.glsl", GL_FRAGMENT_SHADER);
     _program.link();
-    _program.use();
+
+    _boid = program();
+    _boid.add_shader("shadows/point_shadow_boid.vs.glsl", GL_VERTEX_SHADER);
+    _boid.add_shader("shadows/point_shadow.gs.glsl", GL_GEOMETRY_SHADER);
+    _boid.add_shader("shadows/point_shadow.fs.glsl", GL_FRAGMENT_SHADER);
+    _boid.link();
 
     _projection = perspective(radians(90.0f), 1.0f, 0.1f, 100.0f);;
-    _program.addUniformMat4(_projection, "projection");
 
+    _program.use();
+    _program.addUniformMat4(_projection, "projection");
     _program.addUniformVec3(_pos, "light_pos");
+    for (auto i=0; i < 6; i++)
+        _program.addUniformMat4(_views[i], ("views[" + std::to_string(i) + "]").c_str());
+
+    _boid.use();
+    _boid.addUniformMat4(_projection, "projection");
+    _boid.addUniformVec3(_pos, "light_pos");
+    for (auto i=0; i < 6; i++)
+        _boid.addUniformMat4(_views[i], ("views[" + std::to_string(i) + "]").c_str());
 
 }
 
 void PointLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)
 {
     glViewport(0,0,2048,2048);
-    _program.use();
-    for (auto i=0; i < 6; i++)
-    _program.addUniformMat4(_views[i], ("views[" + std::to_string(i) + "]").c_str());
 
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
     glCullFace(GL_FRONT);
     glClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
     glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 
+    _program.use();
     glDrawBuffer(GL_COLOR_ATTACHMENT0);
     for (auto model : models)
         model->draw(_program);
@@ -99,6 +111,28 @@ void PointLight::draw_shadow_map(std::vector<std::shared_ptr<Model>> models)
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
+void PointLight::draw_shadow_map(shared_models models, shared_swarms swarms)
+{
+    glViewport(0,0,2048,2048);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
+    glCullFace(GL_FRONT);
+    glClearColor(FLT_MAX, FLT_MAX, FLT_MAX, FLT_MAX);
+    glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+
+    glDrawBuffer(GL_COLOR_ATTACHMENT0);
+    _program.use();
+    for (auto model : models)
+        model->draw(_program);
+
+    _boid.use();
+    for (auto swarm : swarms)
+        swarm->draw(_boid);
+
+    glCullFace(GL_BACK);
+    glClearColor(0, 0, 0, 0);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
 
 void PointLight::set_light_in_program(program p)
 {

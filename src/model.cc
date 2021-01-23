@@ -38,6 +38,13 @@ void Model::draw(program &p)
         mesh.draw(p);
 }
 
+void Model::draw_instances(program &p, int n)
+{
+    _mat->set_uniforms(p);
+    for (auto mesh : _meshes)
+        mesh.draw_instances(p, n);
+}
+
 void Model::draw_patches(program &p)
 {
     _mat->set_uniforms(p);
@@ -116,4 +123,15 @@ void Model::compute_model()
     const mat4 rotat_mat = rotate(mat4(1.0), radians(_degree), _rotation);
     const mat4 scale_mat = scale(mat4(1.0), _scale);
     _model = trans_mat * rotat_mat * scale_mat;
+}
+
+vec3 Model::get_translation()
+{
+    return _translation;
+}
+
+vec3 Model::set_translation(vec3 &translation)
+{
+    _translation = translation;
+    compute_model();
 }

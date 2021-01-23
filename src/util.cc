@@ -186,7 +186,6 @@ void move_window(GLFWwindow *window, double *xpos, double *ypos)
 {
     if (glfwGetKey(window, GLFW_MOUSE_BUTTON_MIDDLE) == GLFW_PRESS)
     {
-        std::cout << "Pute";
         glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
         glfwGetCursorPos(window, xpos, ypos);
     }
@@ -215,7 +214,7 @@ void framebuffer_size_callback(GLFWwindow *window, int width, int height)
 
 GLFWwindow *init_window(uint width, uint height)
 {
-    GLFWwindow *window = glfwCreateWindow(width, height, "ZIZI", NULL, NULL);
+    GLFWwindow *window = glfwCreateWindow(width, height, "Boids du turfu WOW", NULL, NULL);
     if (!window)
     {
         std::cout << "Failed to create GLFW window" << std::endl;

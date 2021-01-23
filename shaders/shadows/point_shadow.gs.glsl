@@ -7,11 +7,11 @@ in vec3 frag_pos[];
 
 in VS_OUT {
     vec3 pos;
+    mat4 model;
 } gs_in[];
 
 uniform mat4 projection;
 uniform mat4 views[6];
-uniform mat4 model;
 
 out GS_OUT {
     vec3 pos;
@@ -25,8 +25,8 @@ void main()
         gl_Layer = i;
         for (int j = 0; j < 3; j++)
         {
-            gs_out.pos = vec3(model * vec4(gs_in[j].pos, 1.0));
-            gl_Position = projection * views[i] * model * vec4(gs_in[j].pos, 1.0);
+            gs_out.pos = vec3(gs_in[j].model * vec4(gs_in[j].pos, 1.0));
+            gl_Position = projection * views[i] * gs_in[j].model * vec4(gs_in[j].pos, 1.0);
             EmitVertex();
         }
         EndPrimitive();

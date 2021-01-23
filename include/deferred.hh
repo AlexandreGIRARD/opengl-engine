@@ -15,6 +15,7 @@ class AmbientOcclusion;
 using shared_camera = std::shared_ptr<Camera>;
 using shared_occlusion = std::shared_ptr<AmbientOcclusion>;
 using shared_swarms = std::vector<std::shared_ptr<Boids>>;
+using shared_models = std::vector<std::shared_ptr<Model>>;
 
 class Deferred
 {
@@ -24,8 +25,8 @@ public:
     Deferred(int width, int height, shared_camera cam, bool with_shadow);
     ~Deferred();
     void update_viewport();
-    void gbuffer_render(std::vector<std::shared_ptr<Model>> models);
-    void gbuffer_render(std::vector<std::shared_ptr<Model>> models, shared_swarms &swarm);
+    void gbuffer_render(shared_models models);
+    void gbuffer_render(shared_models models, shared_swarms swarms);
 
     void render();
     void render_screen_quad();
@@ -49,6 +50,7 @@ public:
 
 private:
     program _program;
+    program _boid;
     program _final;
 
     shared_occlusion _occlusion;

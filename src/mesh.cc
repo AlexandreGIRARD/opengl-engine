@@ -48,7 +48,7 @@ void Mesh::setup_mesh()
     glBindVertexArray(0);
 }
 
-void Mesh::draw(program p)
+void Mesh::draw(program &p)
 {
     // Draw mesh
     glBindVertexArray(_VAO);
@@ -56,7 +56,16 @@ void Mesh::draw(program p)
     glBindVertexArray(0);
 }
 
-void Mesh::draw_patches(program p)
+void Mesh::draw_instances(program &p, int nb_instances)
+{
+    // Draw mesh
+    glBindVertexArray(_VAO);
+    glDrawElementsInstanced(GL_TRIANGLES, _indices.size(), GL_UNSIGNED_INT, 0, nb_instances);
+    glBindVertexArray(0);
+}
+
+
+void Mesh::draw_patches(program &p)
 {
     // Draw mesh
     glBindVertexArray(_VAO);

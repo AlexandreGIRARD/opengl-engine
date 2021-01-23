@@ -103,7 +103,11 @@ Deferred::Deferred(int width, int height, shared_camera camera, bool width_shado
     _program.add_shader("deferred/deferred.vs.glsl", GL_VERTEX_SHADER);
     _program.add_shader("deferred/deferred.fs.glsl", GL_FRAGMENT_SHADER);
     _program.link();
-    _program.use();
+
+    _boid = program();
+    _boid.add_shader("deferred/deferred_boid.vs.glsl", GL_VERTEX_SHADER);
+    _boid.add_shader("deferred/deferred.fs.glsl", GL_FRAGMENT_SHADER);
+    _boid.link();
 
     _final = program();
     if (width_shadow) {
@@ -125,7 +129,7 @@ Deferred::Deferred(int width, int height, shared_camera camera, bool width_shado
 Deferred::~Deferred()
 {}
 
-void Deferred::gbuffer_render(std::vector<std::shared_ptr<Model>> models)
+void Deferred::gbuffer_render(shared_models models)
 {
     _program.use();
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
@@ -134,6 +138,23 @@ void Deferred::gbuffer_render(std::vector<std::shared_ptr<Model>> models)
 
     for (auto model : models)
         model->draw(_program);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Deferred::gbuffer_render(shared_models models, shared_swarms swarms)
+{
+    _program.use();
+    glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDrawBuffers(4, buffer);
+
+    for (auto model : models)
+        model->draw(_program);
+
+    _boid.use();
+    for (auto swarm : swarms)
+        swarm->draw(_boid);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
@@ -226,6 +247,10 @@ void Deferred::update_viewport()
     _program.addUniformMat4(view, "view");
     _program.addUniformMat4(projection, "projection");
     _program.addUniformVec3(position, "cam_pos");
+    _boid.use();
+    _boid.addUniformMat4(view, "view");
+    _boid.addUniformMat4(projection, "projection");
+    _boid.addUniformVec3(position, "cam_pos");
     _final.use();
     _final.addUniformVec3(position, "cam_pos");
     _final.addUniformMat4(inverse_view, "inverse_view");

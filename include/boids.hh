@@ -2,43 +2,39 @@
 
 #include "model.hh"
 #include "program.hh"
+#include "camera.hh"
 
 typedef struct boid
 {
-    vec3 pos;
-    vec3 dir;
+    vec4 pos;
+    vec4 dir;
 } boid_t;
 
 using shared_model = std::shared_ptr<Model>;
 using swarm = std::vector<boid_t>;
 
 
-class Boids : public Model
+class Boids
 {
 public:
-    Boids(std::string path, std::shared_ptr<Material> mat,int size, float speed,
+    Boids(std::string path, std::shared_ptr<Material> mat,int size, float bound, float speed,
         float fov, float separation, float alignment, float cohesion);
-    void check_bound(int i);
-    void align_boid(int i, swarm &local_swarm);
-    void center_boid(int i, swarm &local_swarm);
-    void separe_boid(int i, swarm &local_swarm);
-    void clamp_speed(int i);
-    bool in_field_of_view(boid_t &b1, boid_t &b2);
+    void update(vec3 &follow, vec3 &predator);
     void update_ui();
-    void update();
-    void update(std::vector<std::shared_ptr<Boids>> swarms);
-    void draw(program &p) override;
+    void update_uniforms(vec3 &follow, vec3 &predator);
+    void draw(program &p);
 
 private:
     static int _nb_swarms;
 
-    program _draw_program;
-    program _comp_program;
+    Model _model;
+    program _program;
     uint _pos_ssbo;
     uint _dir_ssbo;
     uint _mat_ssbo;
     int _id;
     int _size;
+    float _bound;
     float _fov;
     float _speed;
     float _angle;
@@ -46,5 +42,7 @@ private:
     float _separation_factor = 0.05f;
     float _align_factor = 0.05f;
     float _cohesion_factor = 0.005f;
-    std::vector<boid_t> _swarm;
+    float _follow_factor = 0.001;
+    float _predator_factor = 0.1;
+    float _predator_dist = 2.f;
 };

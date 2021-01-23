@@ -9,12 +9,17 @@ out VS_OUT {
     mat4 model;
 } vs_out;
 
+// SSBO
+layout (std430, binding = 0) buffer Matrices
+{
+    mat4 models[];
+};
 // Uniforms
 uniform mat4 model;
 
 void main()
 {
     vs_out.pos = pos;
-    vs_out.model = model;
+    vs_out.model = models[gl_InstanceID];
     gl_Position = vec4(pos, 1.0);
 }

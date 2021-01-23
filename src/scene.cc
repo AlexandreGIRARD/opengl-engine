@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <cmath>
 
 Scene::Scene(const char *path)
 {
@@ -121,9 +122,8 @@ void Scene::add_model(nlohmann::json &j)
 void Scene::add_swarm(nlohmann::json &j)
 {
     auto j_model = j["model"];
-    auto swarm = std::make_shared<Boids>(j_model["path"], _materials[j_model["material_id"]], j["size"], j["speed"],
+    auto swarm = std::make_shared<Boids>(j_model["path"], _materials[j_model["material_id"]], j["size"], j["bound"], j["speed"],
                                                  j["fov"], j["separation"], j["alignment"], j["cohesion"]);
-    _models.emplace_back(swarm);
     _swarms.emplace_back(swarm);
 }
 
@@ -135,25 +135,38 @@ void Scene::render(GLFWwindow *window, float delta, float xpos, float ypos)
     // Update sun position from camera pos
     // sun.update_position(cam.get_position()); <-- TODO
 
+    double time = glfwGetTime();
+    // rotate model follow
+    auto cube = _models[_models.size()-2];
+    // roattion formula
+    vec3 trans = vec3(8*sin(2*M_PI*time*0.1), 4*sin(2*M_PI*time*0.5), 8*cos(2*M_PI*time*0.1));
+    cube->set_translation(trans);
+
+
+    // rotate model predator
+    cube = _models[_models.size()-1];
+    // roattion formula
+    vec3 trans2 = vec3(-8*cos(2*M_PI*time*0.1), 4*cos(2*M_PI*time*0.5), -8*sin(2*M_PI*time*0.1));
+    cube->set_translation(trans2);
+
     /*
        HANDLE ANIMATION FOR MODELS HERE
        */
      for (auto swarm : _swarms)
-     {
-        // swarm->update(_swarms);
-        swarm->update();
-    }
+        swarm->update(trans, trans2);
+
+
 
     // swarm.update()
 
     // First pass deferred rendering --> fill G_BUFFER
     _deferred.update_viewport();
-    _deferred.gbuffer_render(_models);
+    _deferred.gbuffer_render(_models, _swarms);
 
     // Shadow computing
-    _sun.draw_shadow_map(_models);
+    _sun.draw_shadow_map(_models, _swarms);
     for (auto light : _lights)
-        light->draw_shadow_map(_models);
+        light->draw_shadow_map(_models, _swarms);
     glViewport(0, 0, _width, _height);
 
     // Second pass deferred rendering --> render using G_BUFFER & SHADOWS
@@ -162,6 +175,7 @@ void Scene::render(GLFWwindow *window, float delta, float xpos, float ypos)
     _deferred.render_skybox(_skybox);
     _deferred.bind_fbo_to_backbuffer(); // TODO Need to be erased not fucked up tweak
 
+    // _swarms[0]->draw_gpu_test(_camera);
     // Water rendering
     // water.render(models, cam, deferred, skybox);
 

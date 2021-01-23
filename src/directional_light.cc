@@ -50,36 +50,68 @@ void DirectionalLight::setup_program(vec3 direction, vec3 cam_pos)
     _program.add_shader("shadows/directional_shadow.vs.glsl", GL_VERTEX_SHADER);
     _program.add_shader("shadows/directional_shadow.fs.glsl", GL_FRAGMENT_SHADER);
     _program.link();
-    _program.use();
+
+    _boid = program();
+    _boid.add_shader("shadows/directional_shadow_boid.vs.glsl", GL_VERTEX_SHADER);
+    _boid.add_shader("shadows/directional_shadow.fs.glsl", GL_FRAGMENT_SHADER);
+    _boid.link();
 
     _shadow_cam = Camera(cam_pos + vec3(0, 0.5, -1), direction, vec3(0, 1, 0));
     _view = _shadow_cam.look_at();
-    _program.addUniformMat4(_view, "view");
-
     _projection = ortho<float>(-10, 10, -10, 10, -10, 20);
+
+    _program.use();
+    _program.addUniformMat4(_view, "view");
     _program.addUniformMat4(_projection, "projection");
+
+    _boid.use();
+    _boid.addUniformMat4(_view, "view");
+    _boid.addUniformMat4(_projection, "projection");
 
 }
 
 void DirectionalLight::update_position(vec3 cam_pos)
 {
-    _program.use();
     _shadow_cam.set_position(cam_pos + vec3(0, 0.5, 1));
     _view = _shadow_cam.look_at();
+
+    _program.use();
     _program.addUniformMat4(_view, "view");
+    _boid.use();
+    _boid.addUniformMat4(_view, "view");
 }
 
 void DirectionalLight::draw_shadow_map(shared_models models)
 {
-    _program.use();
     glCullFace(GL_FRONT);
     glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glViewport(0,0,2048,2048);
     glDrawBuffer(GL_NONE);
 
+    _program.use();
     for (auto model : models)
         model->draw(_program);
+
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+    glCullFace(GL_BACK);
+}
+
+void DirectionalLight::draw_shadow_map(shared_models models, shared_swarms swarms)
+{
+    glCullFace(GL_FRONT);
+    glBindFramebuffer(GL_FRAMEBUFFER, _FBO);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glViewport(0,0,2048,2048);
+    glDrawBuffer(GL_NONE);
+
+    _program.use();
+    for (auto model : models)
+        model->draw(_program);
+
+    _boid.use();
+    for (auto swarm : swarms)
+        swarm->draw(_boid);
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     glCullFace(GL_BACK);

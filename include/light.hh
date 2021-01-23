@@ -22,6 +22,7 @@ public:
     Light(vec3 color, float intensity);
     virtual uint set_shadow_framebuffer() = 0;
     virtual void draw_shadow_map(shared_models models) = 0;
+    virtual void draw_shadow_map(shared_models models, shared_swarms swarms) = 0;
     virtual void set_light_in_program(program p) = 0;
 
     uint get_light_id();
@@ -44,6 +45,7 @@ protected:
     uint _FBO;
     uint _map;
     program _program;
+    program _boid;
 };
 
 #endif /* LIGHT_HH */
