@@ -40,6 +40,14 @@ uniform vec3 predator_obj;
 uniform float predator_factor;
 uniform float predator_dist;
 
+mat4 scale(vec3 v)
+{
+    mat4 m = mat4(1.0);
+    m[0].x = v.x;
+    m[1].y = v.y;
+    m[2].z = v.z;
+    return m;
+}
 
 mat4 translate(vec3 v)
 {
@@ -91,7 +99,8 @@ mat4 get_model_matrix(boid_t boid)
     float angle = angle(vec3(0,0,1), normal_dir);
     vec3 axis = cross(vec3(0,0,1), normal_dir);
     mat4 rotat_mat = rotate(angle, axis);
-    return trans_mat * rotat_mat;
+    mat4 scale_mat = scale(vec3(0.5));
+    return trans_mat * rotat_mat * scale_mat;
 }
 
 boid_t get_boid(uint gid)
@@ -174,9 +183,9 @@ void main()
         boid_t b1 = get_boid(gid);
 
         // Follow
-        b1.dir += normalize(follow_obj - b1.pos) * follow_factor;
+        //b1.dir += normalize(follow_obj - b1.pos) * follow_factor;
         // clamp_speed(b1);
-        update_boid(gid, b1);
+        //update_boid(gid, b1);
         barrier();
 
         // Update current boid
@@ -218,7 +227,7 @@ void main()
         vec3 v2 = align_boid(b1, align_size, align);
         vec3 v3 = separe_boid(b1, sep_size, separe);
 
-        b1.dir +=  v1 + v2 + v3;
+        b1.dir +=  v1 + v2 + v3 + normalize(follow_obj - b1.pos) * follow_factor;
         clamp_speed(b1);
 
         if (distance(b1.pos, predator_obj) <= predator_dist)

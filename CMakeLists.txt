@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
 project(engine)
 
-set(CMAKE_BUILD_TYPE Debug)
+#set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 11)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS} -O3 -flto -march=native")
 set(OpenGL_GL_PREFERENCE "GLVND")
 
 find_package(glfw3 REQUIRED)

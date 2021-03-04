@@ -58,6 +58,10 @@
             "diffuse": [0,0,1],
             "specular": [0.7,0.7,0.7],
             "shininess": 0.25
+        },
+        {
+            "type":"textured",
+            "path": "textures/sharks"
         }
     ],
     "boids":[
@@ -75,7 +79,7 @@
                 "path": "models/boid.obj",
                 "material_id": 3
             },
-            "bound": 20
+            "bound": 30
         }
     ],
     "models": [
@@ -128,12 +132,12 @@
             "scale": [1,1,1]
         },
         {
-            "path": "models/cube.obj",
-            "material_id": 4,
+            "path": "models/sharks.obj",
+            "material_id": 5,
             "translation": [0,0,0],
-            "rotation": [0,1,0],
-            "degree": 90.0,
-            "scale": [1,1,1]
+            "rotation": [0,1,1],
+            "degree": 180.0,
+            "scale": [0.05,0.05,0.05]
         }
     ]
 }
