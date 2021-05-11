@@ -16,13 +16,6 @@ It is implemented using OpenGL 4.5 and C++.
 - Deferred Shading
 - Boids Simulation
 
-### To Implement
-- Ambient Occlusion (soon)
-- Bloom
-- Learn about Scene Graph
-- Motion Blur ?
--
-
 ## Build
 ```sh
 # Build
