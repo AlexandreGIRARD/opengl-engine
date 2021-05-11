@@ -39,4 +39,6 @@ In order to use this project you must install GLFW and Assimp on your computer.
 
 ## Results
 
+[Youtube Video](https://www.youtube.com/watch?v=thg5mGzw3nc)
+
 [![IMAGE ALT TEXT HERE](textures/boids.gif)](https://www.youtube.com/watch?v=JS43Ozl9Hzw)
